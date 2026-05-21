@@ -1,0 +1,13 @@
+---
+title: "data_reading"
+output: html_document
+---
+
+This is a data cleaning script 
+
+```{r}
+library(tidyverse)
+library(psych)
+data <- read.csv("data")
+```
+
