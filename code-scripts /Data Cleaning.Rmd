@@ -52,8 +52,68 @@ w1_sub <- w1 %>% select(AID,
                         H1FS16,       # You felt sad.
                         H1FS17,       # You felt that people disliked you.
                         H1FS18,       # It was hard to get started doing things.
-                        H1FS19)       # You felt life was not worth living
-                         
+                        H1FS19,      # You felt life was not worth living
+                        #---------Parent Relationships-----------
+  # ---- Section 16: Relations with Parents (autonomy / decision-making) ----
+  H1WP1,    # Q1  Parents let you decide your own weekend-night curfew?
+  H1WP2,    # Q2  Parents let you decide the people you hang around with?
+  H1WP3,    # Q3  Parents let you decide what you wear?
+  H1WP4,    # Q4  Parents let you decide how much TV you watch?
+  H1WP5,    # Q5  Parents let you decide which TV programs you watch?
+  H1WP6,    # Q6  Parents let you decide what time you go to bed on week nights?
+  H1WP7,    # Q7  Parents let you decide what you eat?
+  H1WP8,    # Q8  # of past 7 days a parent was in the room while you ate evening meal
+
+  # ---- Section 16: closeness / caring / educational aspirations (MOTHER) ----
+  H1WP9,    # Q9   How close do you feel to your mother?
+  H1WP10,   # Q10  How much do you think she cares about you?
+  H1WP11,   # Q11  How disappointed would she be if you did NOT graduate college? (1-5)
+  H1WP12,   # Q12  How disappointed would she be if you did NOT graduate high school? (1-5)
+
+  # ---- Section 16: closeness / caring / educational aspirations (FATHER) ----
+  H1WP13,   # Q13  How close do you feel to your father?
+  H1WP14,   # Q14  How much do you think he cares about you?
+  H1WP15,   # Q15  How disappointed would he be if you did NOT graduate college? (1-5)
+  H1WP16,   # Q16  How disappointed would he be if you did NOT graduate high school? (1-5)
+
+  # ---- Section 16 Q17: activities done with MOTHER in past 4 weeks ----
+  H1WP17A,  # Q17a  gone shopping
+  H1WP17B,  # Q17b  played a sport
+  H1WP17C,  # Q17c  gone to a religious service / church event
+  H1WP17D,  # Q17d  talked about someone you're dating or a party you went to
+  H1WP17E,  # Q17e  gone to a movie, play, museum, concert, or sports event
+  H1WP17F,  # Q17f  had a talk about a personal problem you were having
+  H1WP17G,  # Q17g  had a serious argument about your behavior
+  H1WP17H,  # Q17h  talked about your school work or grades
+  H1WP17I,  # Q17i  worked on a project for school
+  H1WP17J,  # Q17j  talked about other things you're doing in school
+  H1WP17K,  # Q17k  none of the above
+
+  # ---- Section 16 Q18: activities done with FATHER in past 4 weeks ----
+  H1WP18A,  # Q18a  gone shopping
+  H1WP18B,  # Q18b  played a sport
+  H1WP18C,  # Q18c  gone to a religious service / church event
+  H1WP18D,  # Q18d  talked about someone you're dating or a party you went to
+  H1WP18E,  # Q18e  gone to a movie, play, museum, concert, or sports event
+  H1WP18F,  # Q18f  had a talk about a personal problem you were having
+  H1WP18G,  # Q18g  had a serious argument about your behavior
+  H1WP18H,  # Q18h  talked about your school work or grades
+  H1WP18I,  # Q18i  worked on a project for school
+  H1WP18J,  # Q18j  talked about other things you're doing in school
+  H1WP18K,  # Q18k  none of the above
+
+  # ---- Section 18****: warmth / communication / satisfaction (MOTHER) ----
+  H1PF1,    # Q1   Most of the time, your mother is warm and loving toward you
+  H1PF2,    # Q2   Your mother encourages you to be independent
+  H1PF3,    # Q3   When you do wrong, your mother talks it through & helps you understand why
+  H1PF4,    # Q4   You are satisfied with the way your mother and you communicate
+  H1PF5,    # Q5   Overall, you are satisfied with your relationship with your mother
+
+  # ---- Section 18: warmth / communication / satisfaction (FATHER) ----
+  H1PF23,   # Q23  Most of the time, your father is warm and loving toward you
+  H1PF24,   # Q24  You are satisfied with the way your father and you communicate
+  H1PF25    # Q25  Overall, you are satisfied with your relationship with your father
+)
 
 
 ```
