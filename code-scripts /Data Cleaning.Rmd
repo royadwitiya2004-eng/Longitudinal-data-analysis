@@ -8,12 +8,46 @@ output: html_document
 library(haven)
 library(dplyr)
 
+#load w1 to w4
 w1 <- load("data w1 to w4/21600-0001-Data copy.rda") # Wave I in-home
 w2<- load("data w1 to w4/21600-0005-Data copy.rda") # Wave II in-home
 w3 <- load("data w1 to w4/21600-0008-Data copy.rda") # Wave III in-home
 w4 <- load("data w1 to w4/21600-0022-Data copy.rda") # Wave IV in-home
 
 View(w4)
+
+#Each wave file has hundreds of variables. If you merge everything first, you end up with a dataset thousands of columns wide, which is slow and confusing. Instead, select your variables of interest from each wave first, keeping AID in every one:
+w1_sub <- w1 %>% select(AID, 
+                         GSWGT1,      # Wave I cross-sectional weight
+                         CLUSTER2,    # PSU variable (needed for all analyses)
+                         REGION,      # stratification variable
+                         # --- your W1 variables here ---
+                         H1GI6A,      # example: race (Hispanic)
+                         H1GI6B,      # race (White)
+                         H1GI9,       # age at Wave I
+                         PA12,        # parental education (from parent questionnaire)
+                         H1NF1,       # family income
+                        #------ Feelings Scale (Depression) ------
+                        H1FS1,        # You were bothered by things that usually don’t bother you.
+                        H1FS2,        # You didn’t feel like eating, your appetite was poor.
+                        H1FS3,        # You felt that you could not shake off the blues, even with help from your                                          family and your friends.
+                        H1FS4,        # You felt that you were just as good as other people.
+                        H1FS5,        # You had trouble keeping your mind on what you were doing.
+                        H1FS6,        # You felt depressed.
+                        H1FS7,        # You felt that you were too tired to do things.
+                        H1FS8,        # You felt hopeful about the future.
+                        H1FS9,        # You thought your life had been a failure.
+                        H1FS10,       # You felt fearful.
+                        H1FS11,       # You were happy
+                        H1FS12,       # You talked less than usual.
+                        H1FS13,       # You felt lonely.
+                        H1FS14,       # People were unfriendly to you
+                        H1FS15,       # You enjoyed life.
+                        H1FS16,       # You felt sad.
+                        H1FS17,       # You felt that people disliked you.
+                        H1FS18,       # It was hard to get started doing things.
+                        H1FS19)       # You felt life was not worth living
+                         
 
 
 ```
