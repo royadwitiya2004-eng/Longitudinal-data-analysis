@@ -118,14 +118,30 @@ w1_sub <- w1 %>% select(AID,
 )
 
 
+
 ```
 
 
 ```{r}
+#Then merge all five into one wide dataset:
+combined <- w1_sub %>%
+  left_join(w2_sub, by = "AID") %>%
+  left_join(w3_sub, by = "AID") %>%
+  left_join(w4_sub, by = "AID") %>%
+  left_join(w5_sub, by = "AID")
 ```
 
 
 ```{r}
+
+#Weight files — remember the weight variables for W3, W4, and the longitudinal weights live in separate weight files (DS19/DS21 for W3, DS31 for W4, DS42 for W5), not necessarily in the in-home questionnaire files themselves. You'll need an extra merge step for those, e.g.:
+
+w4_weights <- read_dta("DS0031/21600-0031-Data.dta") %>%
+  select(AID, GSWGT4, GSWGT134)
+
+combined <- combined %>%
+  left_join(w4_weights, by = "AID")
+
 ```
 
 Data Cleaning File to combine datasets and isolate variables
