@@ -39,18 +39,18 @@ w1_sub <- w1 %>% select(AID,
                         H1FS1,        # You were bothered by things that usually don’t bother you.
                         H1FS2,        # You didn’t feel like eating, your appetite was poor.
                         H1FS3,        # You felt that you could not shake off the blues, even with help from your                                          family and your friends.
-                        H1FS4,        # You felt that you were just as good as other people.
+                        H1FS4,        # You felt that you were just as good as other people.        (REVERSE)
                         H1FS5,        # You had trouble keeping your mind on what you were doing.
                         H1FS6,        # You felt depressed.
                         H1FS7,        # You felt that you were too tired to do things.
-                        H1FS8,        # You felt hopeful about the future.
+                        H1FS8,        # You felt hopeful about the future.                         (REVERSE)
                         H1FS9,        # You thought your life had been a failure.
                         H1FS10,       # You felt fearful.
-                        H1FS11,       # You were happy
+                        H1FS11,       # You were happy                                              (REVERSE)
                         H1FS12,       # You talked less than usual.
                         H1FS13,       # You felt lonely.
                         H1FS14,       # People were unfriendly to you
-                        H1FS15,       # You enjoyed life.
+                        H1FS15,       # You enjoyed life.                                          (REVERSE)
                         H1FS16,       # You felt sad.
                         H1FS17,       # You felt that people disliked you.
                         H1FS18,       # It was hard to get started doing things.
@@ -114,7 +114,6 @@ w1_sub <- w1 %>% select(AID,
   # ---- Section 18: warmth / communication / satisfaction (FATHER) ----
   H1PF23,   # Q23  Most of the time, your father is warm and loving toward you
   H1PF24,   # Q24  You are satisfied with the way your father and you communicate
-<<<<<<< HEAD
   H1PF25,    # Q25  Overall, you are satisfied with your relationship with your father
   
   #------ Section 35: Protective Factors ------
