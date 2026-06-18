@@ -32,8 +32,10 @@ w1_sub <- w1 %>% select(AID,
                          # --- AGE ----
                          H1GI9,       # age at Wave I
                          PA12,        # parental education (from parent questionnaire)
-                         H1NF1,       # family income
-                        #------ Feelings Scale (Depression) ------
+                         PA55,       # family income
+                        # ---- SEX ----
+                        BIO_SEX,     #male/female/refused
+   #------ Section 10: Feelings Scale (Depression) ------
                         H1FS1,        # You were bothered by things that usually don’t bother you.
                         H1FS2,        # You didn’t feel like eating, your appetite was poor.
                         H1FS3,        # You felt that you could not shake off the blues, even with help from your                                          family and your friends.
@@ -112,6 +114,7 @@ w1_sub <- w1 %>% select(AID,
   # ---- Section 18: warmth / communication / satisfaction (FATHER) ----
   H1PF23,   # Q23  Most of the time, your father is warm and loving toward you
   H1PF24,   # Q24  You are satisfied with the way your father and you communicate
+<<<<<<< HEAD
   H1PF25,    # Q25  Overall, you are satisfied with your relationship with your father
   
   #------ Section 35: Protective Factors ------
@@ -127,13 +130,18 @@ H1PR5,   # Q5  How much do you feel that people in your family understand you?
 H1PR6,   # Q6  How much do you feel that you want to leave home?  [REVERSE CODE]
 H1PR7,   # Q7  How much do you feel that you and your family have fun together?
 H1PR8,   # Q8  How much do you feel that your family pays attention to you?
+=======
+  H1PF25    # Q25  Overall, you are satisfied with your relationship with your father
+>>>>>>> 99eb0556befcd7d0eb184002eb954e6858d55826
 )
+
 
 
 ```
 
 
 ```{r}
+<<<<<<< HEAD
 #Wave 2- excludes race and family income
 w2_sub <- w2 %>% select(# =============================================================
 # Add Health WAVE II In-Home Questionnaire
@@ -243,10 +251,19 @@ peer_networks <- c(
   H2FF14A,H2FF14B,H2FF14C,H2FF14D,H2FF14E,  # Q14 (female friends)
   H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E   # Q15 (female friends)
 ))
+=======
+#Then merge all five into one wide dataset:
+combined <- w1_sub %>%
+  left_join(w2_sub, by = "AID") %>%
+  left_join(w3_sub, by = "AID") %>%
+  left_join(w4_sub, by = "AID") %>%
+  left_join(w5_sub, by = "AID")
+>>>>>>> 99eb0556befcd7d0eb184002eb954e6858d55826
 ```
 
 
 ```{r}
+<<<<<<< HEAD
 #Wave 3: excludes parent education
 w3_sub <- w3 %>% selec(# =============================================================
 # Add Health WAVE III In-Home Questionnaire
@@ -493,6 +510,17 @@ personality_factors <- c(
 #  Optimism (LOT-R style): H4PE7, H4PE15, H4PE23
 #  Mastery / locus of control: H4PE37, H4PE38, H4PE39, H4PE40
 #  Risk / decision style: H4PE33, H4PE34, H4PE35
+=======
+
+#Weight files — remember the weight variables for W3, W4, and the longitudinal weights live in separate weight files (DS19/DS21 for W3, DS31 for W4, DS42 for W5), not necessarily in the in-home questionnaire files themselves. You'll need an extra merge step for those, e.g.:
+
+w4_weights <- read_dta("DS0031/21600-0031-Data.dta") %>%
+  select(AID, GSWGT4, GSWGT134)
+
+combined <- combined %>%
+  left_join(w4_weights, by = "AID")
+
+>>>>>>> 99eb0556befcd7d0eb184002eb954e6858d55826
 ```
 
 Data Cleaning File to combine datasets and isolate variables
