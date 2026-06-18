@@ -22,8 +22,14 @@ w1_sub <- w1 %>% select(AID,
                          CLUSTER2,    # PSU variable (needed for all analyses)
                          REGION,      # stratification variable
                          # --- your W1 variables here ---
-                         H1GI6A,      # example: race (Hispanic)
+                         # --- Race -----
+                         H1GI6A,      # race (Hispanic)
                          H1GI6B,      # race (White)
+                         H1GI6B,      # race (Black or African American)
+                         H1GI6C,      # race (American Indian or Native American)
+                         H1GI6D,      # race (Asian or Pacific Islander)
+                         H1GI6E,      # race (Other)
+                         # --- AGE ----
                          H1GI9,       # age at Wave I
                          PA12,        # parental education (from parent questionnaire)
                          H1NF1,       # family income
