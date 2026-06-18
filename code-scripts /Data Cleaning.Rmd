@@ -2,7 +2,20 @@
 title: "Data Cleaning"
 output: html_document
 ---
+
+
 ```{r}
+library(haven)
+library(dplyr)
+
+w1 <- load("data w1 to w4/21600-0001-Data copy.rda") # Wave I in-home
+w2<- load("data w1 to w4/21600-0005-Data copy.rda") # Wave II in-home
+w3 <- load("data w1 to w4/21600-0008-Data copy.rda") # Wave III in-home
+w4 <- load("data w1 to w4/21600-0022-Data copy.rda") # Wave IV in-home
+
+View(w4)
+
+
 ```
 
 
