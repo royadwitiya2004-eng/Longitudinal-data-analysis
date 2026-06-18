@@ -8,6 +8,10 @@ This is a data cleaning script
 ```{r}
 library(tidyverse)
 library(psych)
+library(dplyr)
 data <- read.csv("data")
+
+
+
 ```
 
