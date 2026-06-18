@@ -32,8 +32,10 @@ w1_sub <- w1 %>% select(AID,
                          # --- AGE ----
                          H1GI9,       # age at Wave I
                          PA12,        # parental education (from parent questionnaire)
-                         H1NF1,       # family income
-                        #------ Feelings Scale (Depression) ------
+                         PA55,       # family income
+                        # ---- SEX ----
+                        BIO_SEX,     #male/female/refused
+   #------ Section 10: Feelings Scale (Depression) ------
                         H1FS1,        # You were bothered by things that usually don’t bother you.
                         H1FS2,        # You didn’t feel like eating, your appetite was poor.
                         H1FS3,        # You felt that you could not shake off the blues, even with help from your                                          family and your friends.
@@ -113,20 +115,6 @@ w1_sub <- w1 %>% select(AID,
   H1PF23,   # Q23  Most of the time, your father is warm and loving toward you
   H1PF24,   # Q24  You are satisfied with the way your father and you communicate
   H1PF25    # Q25  Overall, you are satisfied with your relationship with your father
-  
-  #------ Section 35: Protective Factors ------
-# Administered to ALL respondents
-# Scale: 1 = not at all, 2 = very little, 3 = somewhat, 4 = quite a bit, 5 = very much
-# (6 = does not apply; 96 = refused; 98 = don't know)
-
-H1PR1,   # Q1  How much do you feel that adults care about you?
-H1PR2,   # Q2  How much do you feel that your teachers care about you?
-H1PR3,   # Q3  How much do you feel that your parents care about you?
-H1PR4,   # Q4  How much do you feel that your friends care about you?
-H1PR5,   # Q5  How much do you feel that people in your family understand you?
-H1PR6,   # Q6  How much do you feel that you want to leave home?  [REVERSE CODE]
-H1PR7,   # Q7  How much do you feel that you and your family have fun together?
-H1PR8,   # Q8  How much do you feel that your family pays attention to you?
 )
 
 
