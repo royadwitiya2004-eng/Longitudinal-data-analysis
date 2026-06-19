@@ -1,0 +1,509 @@
+---
+title: "Data Cleaning"
+output: html_document
+---
+
+
+```{r}
+library(haven)
+library(dplyr)
+
+#load w1 to w4
+w1 <- load("data w1 to w4/21600-0001-Data copy.rda") # Wave I in-home
+w2<- load("data w1 to w4/21600-0005-Data copy.rda") # Wave II in-home
+w3 <- load("data w1 to w4/21600-0008-Data copy.rda") # Wave III in-home
+w4 <- load("data w1 to w4/21600-0022-Data copy.rda") # Wave IV in-home
+
+View(w4)
+
+#Each wave file has hundreds of variables. If you merge everything first, you end up with a dataset thousands of columns wide, which is slow and confusing. Instead, select your variables of interest from each wave first, keeping AID in every one:
+w1_sub <- w1 %>% select(AID, 
+                         GSWGT1,      # Wave I cross-sectional weight
+                         CLUSTER2,    # PSU variable (needed for all analyses)
+                         REGION,      # stratification variable
+                         # --- your W1 variables here ---
+                         # --- Race -----
+                         H1GI6A,      # race (Hispanic)
+                         H1GI6B,      # race (White)
+                         H1GI6B,      # race (Black or African American)
+                         H1GI6C,      # race (American Indian or Native American)
+                         H1GI6D,      # race (Asian or Pacific Islander)
+                         H1GI6E,      # race (Other)
+                         # --- AGE ----
+                         H1GI9,       # age at Wave I
+                         PA12,        # parental education (from parent questionnaire)
+                         PA55,       # family income
+                        # ---- SEX ----
+                        BIO_SEX,     #male/female/refused
+   #------ Section 10: Feelings Scale (Depression) ------
+                        H1FS1,        # You were bothered by things that usually don’t bother you.
+                        H1FS2,        # You didn’t feel like eating, your appetite was poor.
+                        H1FS3,        # You felt that you could not shake off the blues, even with help from your                                          family and your friends.
+                        H1FS4,        # You felt that you were just as good as other people.        (REVERSE)
+                        H1FS5,        # You had trouble keeping your mind on what you were doing.
+                        H1FS6,        # You felt depressed.
+                        H1FS7,        # You felt that you were too tired to do things.
+                        H1FS8,        # You felt hopeful about the future.                         (REVERSE)
+                        H1FS9,        # You thought your life had been a failure.
+                        H1FS10,       # You felt fearful.
+                        H1FS11,       # You were happy                                              (REVERSE)
+                        H1FS12,       # You talked less than usual.
+                        H1FS13,       # You felt lonely.
+                        H1FS14,       # People were unfriendly to you
+                        H1FS15,       # You enjoyed life.                                          (REVERSE)
+                        H1FS16,       # You felt sad.
+                        H1FS17,       # You felt that people disliked you.
+                        H1FS18,       # It was hard to get started doing things.
+                        H1FS19,      # You felt life was not worth living
+                        #---------Parent Relationships-----------
+  # ---- Section 16: Relations with Parents (autonomy / decision-making) ----
+  H1WP1,    # Q1  Parents let you decide your own weekend-night curfew?
+  H1WP2,    # Q2  Parents let you decide the people you hang around with?
+  H1WP3,    # Q3  Parents let you decide what you wear?
+  H1WP4,    # Q4  Parents let you decide how much TV you watch?
+  H1WP5,    # Q5  Parents let you decide which TV programs you watch?
+  H1WP6,    # Q6  Parents let you decide what time you go to bed on week nights?
+  H1WP7,    # Q7  Parents let you decide what you eat?
+  H1WP8,    # Q8  # of past 7 days a parent was in the room while you ate evening meal
+
+  # ---- Section 16: closeness / caring / educational aspirations (MOTHER) ----
+  H1WP9,    # Q9   How close do you feel to your mother?
+  H1WP10,   # Q10  How much do you think she cares about you?
+  H1WP11,   # Q11  How disappointed would she be if you did NOT graduate college? (1-5)
+  H1WP12,   # Q12  How disappointed would she be if you did NOT graduate high school? (1-5)
+
+  # ---- Section 16: closeness / caring / educational aspirations (FATHER) ----
+  H1WP13,   # Q13  How close do you feel to your father?
+  H1WP14,   # Q14  How much do you think he cares about you?
+  H1WP15,   # Q15  How disappointed would he be if you did NOT graduate college? (1-5)
+  H1WP16,   # Q16  How disappointed would he be if you did NOT graduate high school? (1-5)
+
+  # ---- Section 16 Q17: activities done with MOTHER in past 4 weeks ----
+  H1WP17A,  # Q17a  gone shopping
+  H1WP17B,  # Q17b  played a sport
+  H1WP17C,  # Q17c  gone to a religious service / church event
+  H1WP17D,  # Q17d  talked about someone you're dating or a party you went to
+  H1WP17E,  # Q17e  gone to a movie, play, museum, concert, or sports event
+  H1WP17F,  # Q17f  had a talk about a personal problem you were having
+  H1WP17G,  # Q17g  had a serious argument about your behavior
+  H1WP17H,  # Q17h  talked about your school work or grades
+  H1WP17I,  # Q17i  worked on a project for school
+  H1WP17J,  # Q17j  talked about other things you're doing in school
+  H1WP17K,  # Q17k  none of the above
+
+  # ---- Section 16 Q18: activities done with FATHER in past 4 weeks ----
+  H1WP18A,  # Q18a  gone shopping
+  H1WP18B,  # Q18b  played a sport
+  H1WP18C,  # Q18c  gone to a religious service / church event
+  H1WP18D,  # Q18d  talked about someone you're dating or a party you went to
+  H1WP18E,  # Q18e  gone to a movie, play, museum, concert, or sports event
+  H1WP18F,  # Q18f  had a talk about a personal problem you were having
+  H1WP18G,  # Q18g  had a serious argument about your behavior
+  H1WP18H,  # Q18h  talked about your school work or grades
+  H1WP18I,  # Q18i  worked on a project for school
+  H1WP18J,  # Q18j  talked about other things you're doing in school
+  H1WP18K,  # Q18k  none of the above
+
+  # ---- Section 18****: warmth / communication / satisfaction (MOTHER) ----
+  H1PF1,    # Q1   Most of the time, your mother is warm and loving toward you
+  H1PF2,    # Q2   Your mother encourages you to be independent
+  H1PF3,    # Q3   When you do wrong, your mother talks it through & helps you understand why
+  H1PF4,    # Q4   You are satisfied with the way your mother and you communicate
+  H1PF5,    # Q5   Overall, you are satisfied with your relationship with your mother
+
+  # ---- Section 18: warmth / communication / satisfaction (FATHER) ----
+  H1PF23,   # Q23  Most of the time, your father is warm and loving toward you
+  H1PF24,   # Q24  You are satisfied with the way your father and you communicate
+  H1PF25,    # Q25  Overall, you are satisfied with your relationship with your father
+  
+  #------ Section 35: Protective Factors ------
+# Administered to ALL respondents
+# Scale: 1 = not at all, 2 = very little, 3 = somewhat, 4 = quite a bit, 5 = very much
+# (6 = does not apply; 96 = refused; 98 = don't know)
+
+H1PR1,   # Q1  How much do you feel that adults care about you?
+H1PR2,   # Q2  How much do you feel that your teachers care about you?
+H1PR3,   # Q3  How much do you feel that your parents care about you?
+H1PR4,   # Q4  How much do you feel that your friends care about you?
+H1PR5,   # Q5  How much do you feel that people in your family understand you?
+H1PR6,   # Q6  How much do you feel that you want to leave home?  [REVERSE CODE]
+H1PR7,   # Q7  How much do you feel that you and your family have fun together?
+H1PR8,   # Q8  How much do you feel that your family pays attention to you?
+H1PF25)   # Q25  Overall, you are satisfied with your relationship with your father
+
+
+
+```
+
+
+```{r}
+#Wave 2- excludes race and family income
+w2_sub <- w2 %>% select(# =============================================================
+# Add Health WAVE II In-Home Questionnaire
+# Requested constructs (bare variable codes; comment = #question)
+# Bare names work inside dplyr::select(df, ...) / tidyselect.
+# (In base R, c(...) needs quotes — these are unquoted as you asked.)
+# =============================================================
+
+# ---- DEPRESSION : Section 10 Feelings Scale (CES-D, 19 items) ----
+depression <- c(
+  H2FS1,   # Q1  bothered by things that don't usually bother you
+  H2FS2,   # Q2  didn't feel like eating / poor appetite
+  H2FS3,   # Q3  couldn't shake off the blues
+  H2FS4,   # Q4  felt just as good as other people        (REVERSE)
+  H2FS5,   # Q5  trouble keeping your mind on things
+  H2FS6,   # Q6  felt depressed
+  H2FS7,   # Q7  felt too tired to do things
+  H2FS8,   # Q8  felt hopeful about the future            (REVERSE)
+  H2FS9,   # Q9  thought your life had been a failure
+  H2FS10,  # Q10 felt fearful
+  H2FS11,  # Q11 were happy                                (REVERSE)
+  H2FS12,  # Q12 talked less than usual
+  H2FS13,  # Q13 felt lonely
+  H2FS14,  # Q14 people were unfriendly to you
+  H2FS15,  # Q15 enjoyed life                             (REVERSE)
+  H2FS16,  # Q16 felt sad
+  H2FS17,  # Q17 felt people disliked you
+  H2FS18,  # Q18 hard to get started doing things
+  H2FS19   # Q19 felt life was not worth living
+),
+
+# ---- AGE : Section 1 (birth date) + interview date ----
+age <- c(
+  H2GI1M,  # Q1  birth month
+  H2GI1Y,  # Q1  birth year
+  IMONTH2, # interview month  (use with birth date to compute age)
+  IYEAR2   # interview year
+),
+# No pre-computed age variable lives in the questionnaire; age is
+# derived from birth date and interview date (or use the constructed
+# CALCAGE2 from the separate constructed-variables file).
+
+# ---- PARENT EDUCATION : Sections 14 & 15 (resident parents) ----
+parent_education <- c(
+  H2RM1,   # S14 Q1  How far in school did she [resident mother] go?
+  H2RF1    # S15 Q1  How far in school did he [resident father] go?
+),
+# Note: Wave II does NOT re-ask education for NON-resident bio parents.
+
+# ---- PERSONALITY : Section 18 self-description items ----
+personality <- c(
+  H2PF12,  # Q12 get what you want b/c you worked hard for it
+  H2PF13,  # Q13 go out of your way to avoid problems
+  H2PF14,  # Q14 difficult problems make you very upset
+  H2PF15,  # Q15 decisions on "gut feeling" w/o thinking consequences
+  H2PF16,  # Q16 after a solution, think about what went right/wrong
+  H2PF17,  # Q17 have a lot of energy
+  H2PF18,  # Q18 seldom get sick
+  H2PF19,  # Q19 when sick, get better quickly
+  H2PF20,  # Q20 well coordinated
+  H2PF21,  # Q21 have a lot of good qualities
+  H2PF22,  # Q22 physically fit
+  H2PF23,  # Q23 have a lot to be proud of
+  H2PF24,  # Q24 like yourself the way you are
+  H2PF25,  # Q25 doing everything just about right
+  H2PF26,  # Q26 feel socially accepted
+  H2PF27   # Q27 feel loved and wanted
+),
+
+# ---- PERSONALITY FACTORS : Section 18 dispositional-trait items ----
+# (The trait-like subset; same battery as above. Pick whichever set
+#  matches your construct — these read most like "factors".)
+personality_factors <- c(
+  H2PF28,  # Q28 you like to take risks
+  H2PF29,  # Q29 you are independent
+  H2PF30,  # Q30 you are shy
+  H2PF31,  # Q31 you are assertive
+  H2PF32,  # Q32 you are sensitive to others' feelings
+  H2PF33,  # Q33 you are emotional
+  H2PF34,  # Q34 you can determine what will happen in your life
+  H2PF35   # Q35 you live without much thought for the future
+),
+
+# ---- PEER NETWORKS : Section 20 Friends ----
+# Suffix A–E = friend 1–5;  MF = male friend, FF = female friend.
+peer_networks <- c(
+  FR_FLAG2,                                  # # of nominations allowed (1 vs up to 5)
+  H2MF1, H2FF1,                              # Q1  name/ID of 1st male / female friend
+  H2MF3A, H2MF3B, H2MF3C, H2MF3D,           # Q3  additional male-friend nominations
+  H2FF3A, H2FF3B, H2FF3C, H2FF3D,           # Q3  additional female-friend nominations
+  # --- friend school-enrollment / network-lookup items (Q4–Q9) ---
+  H2MF4A,H2MF4B,H2MF4C,H2MF4D,H2MF4E, H2MF5A,H2MF5B,H2MF5C,H2MF5D,H2MF5E,
+  H2MF6A,H2MF6B,H2MF6C,H2MF6D,H2MF6E, H2MF7A,H2MF7B,H2MF7C,H2MF7D,H2MF7E,
+  H2MF8A,H2MF8B,H2MF8C,H2MF8D,H2MF8E, H2MF9A,H2MF9B,H2MF9C,H2MF9D,H2MF9E,
+  H2FF4A,H2FF4B,H2FF4C,H2FF4D,H2FF4E, H2FF5A,H2FF5B,H2FF5C,H2FF5D,H2FF5E,
+  H2FF6A,H2FF6B,H2FF6C,H2FF6D,H2FF6E, H2FF7A,H2FF7B,H2FF7C,H2FF7D,H2FF7E,
+  H2FF8A,H2FF8B,H2FF8C,H2FF8D,H2FF8E, H2FF9A,H2FF9B,H2FF9C,H2FF9D,H2FF9E,
+  # --- friend interaction / tie items (Q11–Q15), the core network ties ---
+  H2MF11A,H2MF11B,H2MF11C,H2MF11D,H2MF11E,  # Q11 went to friend's house, past 7 days
+  H2MF12A,H2MF12B,H2MF12C,H2MF12D,H2MF12E,  # Q12 met after school to hang out, past 7 days
+  H2MF13A,H2MF13B,H2MF13C,H2MF13D,H2MF13E,  # Q13 spent time together, past weekend
+  H2MF14A,H2MF14B,H2MF14C,H2MF14D,H2MF14E,  # Q14 talked about a problem, past 7 days
+  H2MF15A,H2MF15B,H2MF15C,H2MF15D,H2MF15E,  # Q15 talked on the phone, past 7 days
+  H2FF11A,H2FF11B,H2FF11C,H2FF11D,H2FF11E,  # Q11 (female friends)
+  H2FF12A,H2FF12B,H2FF12C,H2FF12D,H2FF12E,  # Q12 (female friends)
+  H2FF13A,H2FF13B,H2FF13C,H2FF13D,H2FF13E,  # Q13 (female friends)
+  H2FF14A,H2FF14B,H2FF14C,H2FF14D,H2FF14E,  # Q14 (female friends)
+  H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E   # Q15 (female friends)
+))
+
+#Then merge all five into one wide dataset:
+combined <- w1_sub %>%
+  left_join(w2_sub, by = "AID") %>%
+  left_join(w3_sub, by = "AID") %>%
+  left_join(w4_sub, by = "AID") %>%
+  left_join(w5_sub, by = "AID")
+```
+
+
+```{r}
+#Wave 3: excludes parent education
+w3_sub <- w3 %>% selec(# =============================================================
+# Add Health WAVE III In-Home Questionnaire
+# Requested constructs (bare codes; comment = #question)
+# Bare names work inside dplyr::select(df, ...) / tidyselect.
+# =============================================================
+
+# ---- DEPRESSION : Section 12 (abbreviated 9-item CES-D) ----
+depression <- c(
+  H3SP5,   # Q5  bothered by things that don't usually bother you
+  H3SP6,   # Q6  couldn't shake off the blues
+  H3SP7,   # Q7  felt just as good as other people        (REVERSE)
+  H3SP8,   # Q8  trouble keeping your mind on what you were doing
+  H3SP9,   # Q9  felt depressed
+  H3SP10,  # Q10 too tired to do things
+  H3SP11,  # Q11 enjoyed life                             (REVERSE)
+  H3SP12,  # Q12 felt sad
+  H3SP13   # Q13 felt people disliked you
+),
+# (H3SP1-4 are laughing/crying/life-satisfaction/self-rated intelligence,
+#  not part of the CES-D depression scale.)
+
+# ---- RACE / ETHNICITY : Section 1 Demographics ----
+race <- c(
+  H3OD2,   # Q2  Are you of Hispanic or Latino origin?
+  H3OD3A,  # Q3  Hispanic bkgd: Mexican/Mexican American
+  H3OD3B,  # Q3  Hispanic bkgd: Chicano/Chicana
+  H3OD3C,  # Q3  Hispanic bkgd: Cuban/Cuban American
+  H3OD3D,  # Q3  Hispanic bkgd: Puerto Rican
+  H3OD3E,  # Q3  Hispanic bkgd: Central/South American
+  H3OD3F,  # Q3  Hispanic bkgd: other Hispanic
+  H3OD4A,  # Q4  race: white
+  H3OD4B,  # Q4  race: black or African American
+  H3OD4C,  # Q4  race: American Indian or Native American
+  H3OD4D,  # Q4  race: Asian or Pacific Islander
+  H3OD5A,  # Q5  Asian detail: Chinese
+  H3OD5B,  # Q5  Asian detail: Filipino
+  H3OD5C,  # Q5  Asian detail: Japanese
+  H3OD5D,  # Q5  Asian detail: Asian Indian
+  H3OD5E,  # Q5  Asian detail: Korean
+  H3OD5F,  # Q5  Asian detail: Vietnamese
+  H3OD5G,  # Q5  Asian detail: other
+  H3OD6    # Q6  single category that best describes your race
+),
+
+# ---- AGE : Section 1 + constructed age ----
+age <- c(
+  CALCAGE3,# constructed: calculated age at time of interview  <-- use this
+  H3OD1M,  # Q1  birth month
+  H3OD1Y,  # Q1  birth year
+  IYEAR3   # interview year (for deriving age if needed)
+),
+
+# ---- FAMILY / HOUSEHOLD INCOME : Section 15 Economics ----
+family_income <- c(
+  H3EC6,   # Q6  total household income (you + co-resident members), exact
+  H3EC7,   # Q7  best guess of total household income before taxes (bracketed)
+  H3EC8,   # Q8  total household income incl. spouse, exact
+  H3EC9    # Q9  best guess of total household income before taxes (bracketed)
+),
+# Personal (not family) income if you need it: H3EC2/H3EC3 (personal total),
+# H3EC4/H3EC5 (earnings). Income-source yes/no flags: H3EC1A-H3EC1H.
+
+# ---- PERSONALITY : Section 20 BEM Sex-Role Inventory (trait adjectives) ----
+personality <- c(
+  H3BM9,   # Q9  I defend my own beliefs
+  H3BM10,  # Q10 I am affectionate
+  H3BM11,  # Q11 I am conscientious
+  H3BM12,  # Q12 I am independent
+  H3BM13,  # Q13 I am sympathetic
+  H3BM14,  # Q14 I am moody
+  H3BM15,  # Q15 I am assertive
+  H3BM16,  # Q16 I am sensitive to the needs of others
+  H3BM17,  # Q17 I am reliable
+  H3BM18,  # Q18 I have a strong personality
+  H3BM19,  # Q19 I am understanding
+  H3BM20,  # Q20 I am jealous
+  H3BM21,  # Q21 I am forceful
+  H3BM22,  # Q22 I am compassionate
+  H3BM23,  # Q23 I am truthful
+  H3BM24,  # Q24 I have leadership abilities
+  H3BM25,  # Q25 I am eager to soothe hurt feelings
+  H3BM26,  # Q26 I am secretive
+  H3BM27,  # Q27 I am willing to take risks
+  H3BM28,  # Q28 I am warm
+  H3BM29,  # Q29 I am adaptable
+  H3BM30,  # Q30 I am dominant
+  H3BM31,  # Q31 I am tender
+  H3BM32,  # Q32 I am conceited
+  H3BM33,  # Q33 I am willing to take a stand
+  H3BM34,  # Q34 I love children
+  H3BM35,  # Q35 I am tactful
+  H3BM36,  # Q36 I am aggressive
+  H3BM37,  # Q37 I am gentle
+  H3BM38   # Q38 I am conventional
+),
+
+# ---- PERSONALITY FACTORS : risk propensity + self-description ----
+personality_factors <- c(
+  # Section 21: Propensity for Risk (sensation-seeking, forced-choice)
+  H3PR1, H3PR2, H3PR3, H3PR4, H3PR5, H3PR6, H3PR7,
+  # Section 12: self-description / self-esteem / disposition items
+  H3SP17,  # Q17 go out of your way to avoid problems
+  H3SP18,  # Q18 decide on "gut feeling" w/o weighing consequences
+  H3SP19,  # Q19 you have many good qualities
+  H3SP20,  # Q20 you have a lot to be proud of
+  H3SP21,  # Q21 you like yourself the way you are
+  H3SP22,  # Q22 you are doing things just about right
+  H3SP23,  # Q23 you like to take risks
+  H3SP24,  # Q24 you live without much thought for the future
+  H3SP25,  # Q25 important to fit into the group you're with
+  H3SP26,  # Q26 behavior depends on your mood at the time
+  H3SP27   # Q27 behavior depends on how others want you to behave
+),
+
+# ---- PEER NETWORKS : Section 6 Friends (friend-by-friend roster) ----
+# Suffix _A.._J = friend slot 1-10.  One value per (item x friend).
+peer_networks <- c(
+  # Q1  friend nomination / identifier
+  H3FS1_A,H3FS1_B,H3FS1_C,H3FS1_D,H3FS1_E,H3FS1_F,H3FS1_G,H3FS1_H,H3FS1_I,H3FS1_J,
+  # Q2  current relationship to friend
+  H3FS2_A,H3FS2_B,H3FS2_C,H3FS2_D,H3FS2_E,H3FS2_F,H3FS2_G,H3FS2_H,H3FS2_I,H3FS2_J,
+  # Q3  how friend is related to you
+  H3FS3_A,H3FS3_B,H3FS3_C,H3FS3_D,H3FS3_E,H3FS3_F,H3FS3_G,H3FS3_H,H3FS3_I,H3FS3_J,
+  # Q4  how often do you see this friend
+  H3FS4_A,H3FS4_B,H3FS4_C,H3FS4_D,H3FS4_E,H3FS4_F,H3FS4_G,H3FS4_H,H3FS4_I,H3FS4_J,
+  # Q5  how often do you talk by phone / email / letter
+  H3FS5_A,H3FS5_B,H3FS5_C,H3FS5_D,H3FS5_E,H3FS5_F,H3FS5_G,H3FS5_H,H3FS5_I,H3FS5_J,
+  # Q6  is this one of your closest friends
+  H3FS6_A,H3FS6_B,H3FS6_C,H3FS6_D,H3FS6_E,H3FS6_F,H3FS6_G,H3FS6_H,H3FS6_I,H3FS6_J,
+  # Q7  month / year friendship began
+  H3FS7M_A,H3FS7M_B,H3FS7M_C,H3FS7M_D,H3FS7M_E,H3FS7M_F,H3FS7M_G,H3FS7M_H,H3FS7M_I,H3FS7M_J,
+  H3FS7Y_A,H3FS7Y_B,H3FS7Y_C,H3FS7Y_D,H3FS7Y_E,H3FS7Y_F,H3FS7Y_G,H3FS7Y_H,H3FS7Y_I,H3FS7Y_J,
+  # Q8  month / year you last saw friend
+  H3FS8M_A,H3FS8M_B,H3FS8M_C,H3FS8M_D,H3FS8M_E,H3FS8M_F,H3FS8M_G,H3FS8M_H,H3FS8M_I,H3FS8M_J,
+  H3FS8Y_A,H3FS8Y_B,H3FS8Y_C,H3FS8Y_D,H3FS8Y_E,H3FS8Y_F,H3FS8Y_G,H3FS8Y_H,H3FS8Y_I,H3FS8Y_J,
+  # Q9  why friendship ended
+  H3FS9_A,H3FS9_B,H3FS9_C,H3FS9_D,H3FS9_E,H3FS9_F,H3FS9_G,H3FS9_H,H3FS9_I,H3FS9_J,
+  # Q10 before it ended, how often you had contact
+  H3FS10_A,H3FS10_B,H3FS10_C,H3FS10_D,H3FS10_E,H3FS10_F,H3FS10_G,H3FS10_H,H3FS10_I,H3FS10_J
+))
+
+```
+
+
+```{r}
+#Wave 4: excludes peer networks
+# =============================================================
+# Add Health WAVE IV In-Home Questionnaire
+# Requested constructs (bare codes; comment = #question)
+# =============================================================
+
+# ---- DEPRESSION : module H4MH (9-item CES-D, past 7 days) ----
+depression <- c(
+  H4MH18,  # Q18 bothered by things that don't usually bother you
+  H4MH19,  # Q19 could not shake off the blues
+  H4MH20,  # Q20 felt just as good as other people        (REVERSE)
+  H4MH22,  # Q22 felt depressed
+  H4MH23,  # Q23 felt too tired to do things
+  H4MH24,  # Q24 felt happy                                (REVERSE)
+  H4MH25,  # Q25 enjoyed life                              (REVERSE)
+  H4MH26,  # Q26 felt sad
+  H4MH27   # Q27 felt people disliked you
+)
+# (Q21 doesn't exist; numbering skips it. H4MH3-H4MH6 are the
+#  4-item Cohen Perceived Stress Scale; H4MH2 = felt isolated —
+#  related mental-health items if you want them, not part of CES-D.)
+
+# ---- AGE : module H4OD + interview date ----
+age <- c(
+  H4OD1M,  # Q1M birth month
+  H4OD1Y,  # Q1Y birth year
+  IMONTH4, # month of Wave IV interview
+  IYEAR4   # year of Wave IV interview  (derive age from these)
+)
+# No calculated-age variable lives in the questionnaire; use the
+# constructed age variable from the separate constructed-vars file.
+
+# ---- FAMILY / HOUSEHOLD INCOME : module H4EC ----
+family_income <- c(
+  H4EC1,   # Q1  total household income (you + everyone in household)
+  H4EC2,   # Q2  your personal earnings (amount)
+  H4EC3    # Q3  best guess of personal earnings before taxes (bracketed)
+)
+# Related economic items if useful: H4EC7 assets, H4EC8 debts,
+# H4EC11-H4EC15 economic hardship, H4EC16-H4EC17 childhood household SES,
+# H4EC19 subjective social-status ladder.
+
+# ---- PERSONALITY : module H4PE (full battery) ----
+personality <- c(
+  H4PE1,   # Q1  I am the life of the party
+  H4PE2,   # Q2  I sympathize with others' feelings
+  H4PE4,   # Q4  I have frequent mood swings
+  H4PE5,   # Q5  I have a vivid imagination
+  H4PE6,   # Q6  I worry about things
+  H4PE7,   # Q7  I'm always optimistic about my future
+  H4PE9,   # Q9  I don't talk a lot
+  H4PE10,  # Q10 I am not interested in other people's problems
+  H4PE11,  # Q11 I often forget to put things back in their proper place
+  H4PE12,  # Q12 I am relaxed most of the time
+  H4PE13,  # Q13 I am not interested in abstract ideas
+  H4PE14,  # Q14 I am not easily bothered by things
+  H4PE15,  # Q15 I hardly ever expect things to go my way
+  H4PE16,  # Q16 I rarely get irritated
+  H4PE17,  # Q17 I talk to a lot of different people at parties
+  H4PE18,  # Q18 I feel others' emotions
+  H4PE19,  # Q19 I like order
+  H4PE20,  # Q20 I get upset easily
+  H4PE21,  # Q21 I have difficulty understanding abstract ideas
+  H4PE22,  # Q22 I get stressed out easily
+  H4PE23,  # Q23 I expect more good things to happen than bad
+  H4PE24,  # Q24 I lose my temper
+  H4PE25,  # Q25 I keep in the background
+  H4PE26,  # Q26 I am not really interested in others
+  H4PE27,  # Q27 I make a mess of things
+  H4PE28,  # Q28 I seldom feel blue
+  H4PE29,  # Q29 I do not have a good imagination
+  H4PE30,  # Q30 I don't worry about things that have already happened
+  H4PE32,  # Q32 I keep my cool
+  H4PE33,  # Q33 I avoid having to deal with problems in my life
+  H4PE34,  # Q34 I make decisions on 'gut feeling' w/o thinking
+  H4PE35,  # Q35 I like to take risks
+  H4PE37,  # Q37 little I can do to change important things in my life
+  H4PE38,  # Q38 other people determine most of what I can/cannot do
+  H4PE39,  # Q39 many things interfere with what I want to do
+  H4PE40   # Q40 I have little control over things that happen to me
+)
+
+# ---- PERSONALITY FACTORS : 20-item Mini-IPIP Big Five (subset of H4PE) ----
+# Key to official Mini-IPIP scoring; several items are reverse-keyed.
+personality_factors <- c(
+  # Extraversion
+  H4PE1, H4PE9, H4PE17, H4PE25,
+  # Agreeableness
+  H4PE2, H4PE10, H4PE18, H4PE26,
+  # Conscientiousness
+  H4PE11, H4PE19, H4PE27,            # (+ 1 more per official key)
+  # Neuroticism
+  H4PE4, H4PE12, H4PE20, H4PE28,
+  # Openness / Intellect
+  H4PE5, H4PE13, H4PE21, H4PE29
+)
+# Other H4PE sub-constructs you may want separately:
+#  Optimism (LOT-R style): H4PE7, H4PE15, H4PE23
+#  Mastery / locus of control: H4PE37, H4PE38, H4PE39, H4PE40
+#  Risk / decision style: H4PE33, H4PE34, H4PE35
+
+```
+
+Data Cleaning File to combine datasets and isolate variables
