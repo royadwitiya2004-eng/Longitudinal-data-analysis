@@ -37,7 +37,7 @@ dim(w1)        # should show rows x columns, e.g. 6504 x ~2700
 names(w1)[1:10]  # peek at the first few column names to confirm it looks right
 
 #since you no longer need the original da21600.xxxx objects once you've reassigned them to w1–w4, and they're large, you can free up memory:
-rm(da21600.0001, da21600.0005, da21600.0008, da21600.0022, w1_name)
+rm(da21600.0001, da21600.0005, da21600.0008, da21600.0022)
 gc()  # trigger garbage collection to actually reclaim memory
 
 
