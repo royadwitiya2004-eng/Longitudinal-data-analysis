@@ -311,7 +311,7 @@ w2_sub <- w2 %>% select(AID,        #participant ID
   H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E)   # Q15 (female friends)
 
 
-# Merge weights into your already-built w1_sub
+# Merge weights into your already-built w2_sub
 w2_sub <- w2_sub %>%
   left_join(
     w2_weights %>% select(AID, GSWGT2, CLUSTER2),
@@ -457,7 +457,7 @@ w3_sub <- w3 %>% select(AID,        #participant ID
   H3FS10_A,H3FS10_B,H3FS10_C,H3FS10_D,H3FS10_E,H3FS10_F,H3FS10_G,H3FS10_H,H3FS10_I,H3FS10_J
 )
 
-# Merge weights into your already-built w1_sub
+# Merge weights into your already-built w3_sub
 w3_sub <- w3_sub %>%
   left_join(
     w3_weights %>% select(AID, GSWGT3, GSWGT3_2, CLUSTER2),
@@ -565,7 +565,7 @@ w4_sub <- w4 %>% select(AID,
 #  Risk / decision style: H4PE33, H4PE34, H4PE35
 
 
-# Merge weights into your already-built w1_sub
+# Merge weights into your already-built w4_sub
 w4_sub <- w4_sub %>%
   left_join(
     w4_weights %>% select(AID, GSWGT4,GSWGT4_2 , CLUSTER2),
