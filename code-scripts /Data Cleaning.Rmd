@@ -37,7 +37,7 @@ dim(w1)        # should show rows x columns, e.g. 6504 x ~2700
 names(w1)[1:10]  # peek at the first few column names to confirm it looks right
 
 #since you no longer need the original da21600.xxxx objects once you've reassigned them to w1–w4, and they're large, you can free up memory:
-rm(da21600.0001, da21600.0005, da21600.0008, da21600.0022, w1_name)
+rm(da21600.0001, da21600.0005, da21600.0008, da21600.0022)
 gc()  # trigger garbage collection to actually reclaim memory
 
 
@@ -87,8 +87,8 @@ View(w4_weights)
 w1_sub <- w1 %>% select(AID,        #participant ID
                          # --- your W1 variables here ---
                          # --- Race -----
-                         H1GI6A,      # race (Hispanic)
-                         H1GI6B,      # race (White)
+                         H1GI5F,      # race (Other Hispanic)
+                         H1GI6A,      # race (White)
                          H1GI6B,      # race (Black or African American)
                          H1GI6C,      # race (American Indian or Native American)
                          H1GI6D,      # race (Asian or Pacific Islander)
@@ -194,6 +194,7 @@ H1PR6,   # Q6  How much do you feel that you want to leave home?  [REVERSE CODE]
 H1PR7,   # Q7  How much do you feel that you and your family have fun together?
 H1PR8,   # Q8  How much do you feel that your family pays attention to you?
 
+
   H1PF25    # Q25  Overall, you are satisfied with your relationship with your father
 
 )
@@ -209,10 +210,11 @@ w1_sub <- w1_sub %>%
   )
 
 View(w1_sub)
+
+sapply(w1_sub, class)
 ```
 
 ```{r}
-
 #Wave 2- excludes race and family income
 w2_sub <- w2 %>% select(AID,        #participant ID
 # =============================================================
@@ -318,7 +320,6 @@ w2_sub <- w2 %>% select(AID,        #participant ID
   H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E   # Q15 (female friends)
 )
 
-
 # Merge weights into your already-built w2_sub
 w2_sub <- w2_sub %>%
   left_join(
@@ -327,6 +328,8 @@ w2_sub <- w2_sub %>%
   )
 
 View(w2_sub)
+
+sapply(w2_sub, class)
 
 ```
 
@@ -473,6 +476,178 @@ w3_sub <- w3_sub %>%
   )
 
 View(w3_sub)
+
+sapply(w3_sub, class)
+
+```
+
+```{r}
+#Wave 4: excludes peer networks
+w4_sub <- w4 %>% select(AID,
+# =============================================================
+# Add Health WAVE IV In-Home Questionnaire
+# Requested constructs (bare codes; comment = #question)
+# =============================================================
+
+# ---- DEPRESSION : module H4MH (9-item CES-D, past 7 days) ----
+  H4MH18,  # Q18 bothered by things that don't usually bother you
+  H4MH19,  # Q19 could not shake off the blues
+  H4MH20,  # Q20 felt just as good as other people        (REVERSE)
+  H4MH22,  # Q22 felt depressed
+  H4MH23,  # Q23 felt too tired to do things
+  H4MH24,  # Q24 felt happy                                (REVERSE)
+  H4MH25,  # Q25 enjoyed life                              (REVERSE)
+  H4MH26,  # Q26 felt sad
+  H4MH27,   # Q27 felt people disliked you
+
+# (Q21 doesn't exist; numbering skips it. H4MH3-H4MH6 are the
+#  4-item Cohen Perceived Stress Scale; H4MH2 = felt isolated —
+#  related mental-health items if you want them, not part of CES-D.)
+
+# ---- AGE : module H4OD + interview date ----
+  H4OD1M,  # Q1M birth month
+  H4OD1Y,  # Q1Y birth year
+  IMONTH4, # month of Wave IV interview
+  IYEAR4,   # year of Wave IV interview  (derive age from these)
+
+# No calculated-age variable lives in the questionnaire; use the
+# constructed age variable from the separate constructed-vars file.
+
+# ---- FAMILY / HOUSEHOLD INCOME : module H4EC ----
+  H4EC1,   # Q1  total household income (you + everyone in household)
+  H4EC2,   # Q2  your personal earnings (amount)
+  H4EC3,    # Q3  best guess of personal earnings before taxes (bracketed)
+
+# Related economic items if useful: H4EC7 assets, H4EC8 debts,
+# H4EC11-H4EC15 economic hardship, H4EC16-H4EC17 childhood household SES,
+# H4EC19 subjective social-status ladder.
+
+# ---- PERSONALITY : module H4PE (full battery) ----
+  H4PE1,   # Q1  I am the life of the party
+  H4PE2,   # Q2  I sympathize with others' feelings
+  H4PE4,   # Q4  I have frequent mood swings
+  H4PE5,   # Q5  I have a vivid imagination
+  H4PE6,   # Q6  I worry about things
+  H4PE7,   # Q7  I'm always optimistic about my future
+  H4PE9,   # Q9  I don't talk a lot
+  H4PE10,  # Q10 I am not interested in other people's problems
+  H4PE11,  # Q11 I often forget to put things back in their proper place
+  H4PE12,  # Q12 I am relaxed most of the time
+  H4PE13,  # Q13 I am not interested in abstract ideas
+  H4PE14,  # Q14 I am not easily bothered by things
+  H4PE15,  # Q15 I hardly ever expect things to go my way
+  H4PE16,  # Q16 I rarely get irritated
+  H4PE17,  # Q17 I talk to a lot of different people at parties
+  H4PE18,  # Q18 I feel others' emotions
+  H4PE19,  # Q19 I like order
+  H4PE20,  # Q20 I get upset easily
+  H4PE21,  # Q21 I have difficulty understanding abstract ideas
+  H4PE22,  # Q22 I get stressed out easily
+  H4PE23,  # Q23 I expect more good things to happen than bad
+  H4PE24,  # Q24 I lose my temper
+  H4PE25,  # Q25 I keep in the background
+  H4PE26,  # Q26 I am not really interested in others
+  H4PE27,  # Q27 I make a mess of things
+  H4PE28,  # Q28 I seldom feel blue
+  H4PE29,  # Q29 I do not have a good imagination
+  H4PE30,  # Q30 I don't worry about things that have already happened
+  H4PE32,  # Q32 I keep my cool
+  H4PE33,  # Q33 I avoid having to deal with problems in my life
+  H4PE34,  # Q34 I make decisions on 'gut feeling' w/o thinking
+  H4PE35,  # Q35 I like to take risks
+  H4PE37,  # Q37 little I can do to change important things in my life
+  H4PE38,  # Q38 other people determine most of what I can/cannot do
+  H4PE39,  # Q39 many things interfere with what I want to do
+  H4PE40,   # Q40 I have little control over things that happen to me
+
+
+# ---- PERSONALITY FACTORS : 20-item Mini-IPIP Big Five (subset of H4PE) ----
+# Key to official Mini-IPIP scoring; several items are reverse-keyed.
+  # Extraversion
+  H4PE1, H4PE9, H4PE17, H4PE25,
+  # Agreeableness
+  H4PE2, H4PE10, H4PE18, H4PE26,
+  # Conscientiousness
+  H4PE11, H4PE19, H4PE27,            # (+ 1 more per official key)
+  # Neuroticism
+  H4PE4, H4PE12, H4PE20, H4PE28,
+  # Openness / Intellect
+  H4PE5, H4PE13, H4PE21, H4PE29)
+# Other H4PE sub-constructs you may want separately:
+#  Optimism (LOT-R style): H4PE7, H4PE15, H4PE23
+#  Mastery / locus of control: H4PE37, H4PE38, H4PE39, H4PE40
+#  Risk / decision style: H4PE33, H4PE34, H4PE35
+
+
+# Merge weights into your already-built w4_sub
+w4_sub <- w4_sub %>%
+  left_join(
+    w4_weights %>% select(AID, GSWGT4, CLUSTER2),
+    by = "AID"
+  )
+
+View(w4_sub)
+
+sapply(w4_sub, class)
+
+```
+
+```{r}
+
+# =============================================================
+# Spot-check ALL numeric (non-weight) variables across w1-w4
+# for leftover sentinel codes before deciding how to recode
+# =============================================================
+
+# Wave 1 numerics
+table(w1_sub$PA55, useNA = "always")
+table(w1_sub$H1WP11, useNA = "always")
+table(w1_sub$H1WP12, useNA = "always")
+table(w1_sub$H1WP15, useNA = "always")
+table(w1_sub$H1WP16, useNA = "always")
+
+# Wave 3 numerics
+table(w3_sub$CALCAGE3, useNA = "always")
+table(w3_sub$H3OD1Y, useNA = "always")
+table(w3_sub$IYEAR3, useNA = "always")
+table(w3_sub$H3EC6, useNA = "always")
+table(w3_sub$H3EC8, useNA = "always")
+table(w3_sub$H3FS7Y_A, useNA = "always")   # representative friend-slot check
+table(w3_sub$H3FS8Y_A, useNA = "always")
+
+# Wave 4 numerics
+table(w4_sub$H4OD1Y, useNA = "always")
+table(w4_sub$IYEAR4, useNA = "always")
+table(w4_sub$H4EC2, useNA = "always")
+```
+```{r}
+# =============================================================
+# Spot-check remaining Wave 4 numeric candidates
+# =============================================================
+table(w4_sub$H4OD1Y, useNA = "always")   # birth year
+table(w4_sub$IYEAR4, useNA = "always")   # interview year
+table(w4_sub$H4EC2, useNA = "always")    # personal earnings, amount
+```
+```{r}
+# =============================================================
+# FINAL targeted sentinel recoding — complete inventory
+# =============================================================
+
+# Wave 1: PA55 (family income) — 999 = sentinel
+w1_sub <- w1_sub %>%
+  mutate(PA55 = if_else(PA55 == 999, NA_real_, PA55))
+
+# Wave 3: H3EC8 (household income incl. spouse) — 999995 = sentinel
+w3_sub <- w3_sub %>%
+  mutate(H3EC8 = if_else(H3EC8 == 999995, NA_real_, H3EC8))
+
+# Wave 4: H4EC2 (personal earnings) — 999995 = sentinel (same convention as H3EC8)
+w4_sub <- w4_sub %>%
+  mutate(H4EC2 = if_else(H4EC2 == 999995, NA_real_, H4EC2))
+
+# Everything else checked (all factor columns across w1-w4, plus numerics
+# H1WP11/12/15/16, CALCAGE3, H3OD1Y, IYEAR3, H3EC6, H3FS7Y_A, H3FS8Y_A,
+# H4OD1Y, IYEAR4) confirmed clean — no action needed.
 ```
 
 Okay gonna try to merge the waves into one dataset
@@ -484,3 +659,172 @@ combined <- w1_sub %>%
   left_join(w3_sub, by = "AID") %>%
   left_join(w4_sub, by = "AID") 
 ```
+```{r}
+levels(w1_sub$H1FS6)   # confirm: should show "(0) Never/rarely" as the FIRST level
+levels(w3_sub$H3SP9)   # confirm wave 3's labeling convention matches
+levels(w4_sub$H4MH22)  # confirm wave 4's labeling convention matches
+```
+
+```{r}
+# =============================================================
+# Step 1: Convert CES-D factor items to numeric (0-3 scale)
+# Add Health CES-D items are labeled factors where level 1 =
+# "(0) Never/rarely" — so as.numeric(x) - 1 recovers the true
+# 0-3 scale. VERIFY this with levels() above before trusting it.
+# =============================================================
+
+factor_to_cesd_numeric <- function(x) {
+  as.numeric(x) - 1
+}
+
+# ---- Wave 1: H1FS1-H1FS19 (19 items, excluding suicidality item per earlier discussion) ----
+w1_cesd_items <- c("H1FS1","H1FS2","H1FS3","H1FS4","H1FS5","H1FS6","H1FS7",
+                    "H1FS8","H1FS9","H1FS10","H1FS11","H1FS12","H1FS13",
+                    "H1FS14","H1FS15","H1FS16","H1FS17","H1FS18")
+                    # H1FS19 (suicidality item) intentionally excluded — see earlier note
+
+w1_sub <- w1_sub %>%
+  mutate(across(all_of(w1_cesd_items), factor_to_cesd_numeric))
+
+# ---- Wave 2: H2FS1-H2FS19 (same structure as Wave 1) ----
+w2_cesd_items <- c("H2FS1","H2FS2","H2FS3","H2FS4","H2FS5","H2FS6","H2FS7",
+                    "H2FS8","H2FS9","H2FS10","H2FS11","H2FS12","H2FS13",
+                    "H2FS14","H2FS15","H2FS16","H2FS17","H2FS18")
+                    # H2FS19 excluded for consistency with W1
+
+w2_sub <- w2_sub %>%
+  mutate(across(all_of(w2_cesd_items), factor_to_cesd_numeric))
+
+# ---- Wave 3: H3SP5-H3SP13 (9 items) ----
+w3_cesd_items <- c("H3SP5","H3SP6","H3SP7","H3SP8","H3SP9",
+                    "H3SP10","H3SP11","H3SP12","H3SP13")
+
+w3_sub <- w3_sub %>%
+  mutate(across(all_of(w3_cesd_items), factor_to_cesd_numeric))
+
+# ---- Wave 4: H4MH18-H4MH27 (9 items, skipping Q21) ----
+w4_cesd_items <- c("H4MH18","H4MH19","H4MH20","H4MH22","H4MH23",
+                    "H4MH24","H4MH25","H4MH26","H4MH27")
+
+w4_sub <- w4_sub %>%
+  mutate(across(all_of(w4_cesd_items), factor_to_cesd_numeric))
+
+
+# =============================================================
+# Step 2: Reverse-code the positively-worded items
+# Formula for a 0-3 scale: reversed = 3 - x
+# =============================================================
+
+# ---- Wave 1 reverse items: H1FS4, H1FS8, H1FS11, H1FS15 ----
+w1_sub <- w1_sub %>%
+  mutate(
+    H1FS4_r  = 3 - H1FS4,    # "felt as good as other people"
+    H1FS8_r  = 3 - H1FS8,    # "felt hopeful about the future"
+    H1FS11_r = 3 - H1FS11,   # "were happy"
+    H1FS15_r = 3 - H1FS15    # "enjoyed life"
+  )
+
+# ---- Wave 2 reverse items: H2FS4, H2FS8, H2FS11, H2FS15 ----
+w2_sub <- w2_sub %>%
+  mutate(
+    H2FS4_r  = 3 - H2FS4,
+    H2FS8_r  = 3 - H2FS8,
+    H2FS11_r = 3 - H2FS11,
+    H2FS15_r = 3 - H2FS15
+  )
+
+# ---- Wave 3 reverse item: H3SP7 ----
+w3_sub <- w3_sub %>%
+  mutate(
+    H3SP7_r = 3 - H3SP7    # "felt just as good as other people"
+  )
+
+# ---- Wave 4 reverse items: H4MH20, H4MH24, H4MH25 ----
+w4_sub <- w4_sub %>%
+  mutate(
+    H4MH20_r = 3 - H4MH20,   # "felt just as good as other people"
+    H4MH24_r = 3 - H4MH24,   # "felt happy"
+    H4MH25_r = 3 - H4MH25    # "enjoyed life"
+  )
+```
+
+```{r}
+library(psych)
+
+# =============================================================
+# Cronbach's alpha — CES-D items per wave
+# Using reverse-coded (_r) versions of positively-worded items,
+# original numeric versions of all negatively-worded items.
+# H1FS19 / H2FS19 (suicidality items) excluded throughout, per
+# earlier discussion.
+# =============================================================
+
+# ---- Wave 1: 18 items (19-item CES-D minus H1FS19) ----
+w1_alpha <- psych::alpha(
+  w1_sub %>% select(
+    H1FS1, H1FS2, H1FS3, H1FS4_r, H1FS5, H1FS6, H1FS7,
+    H1FS8_r, H1FS9, H1FS10, H1FS11_r, H1FS12, H1FS13,
+    H1FS14, H1FS15_r, H1FS16, H1FS17, H1FS18
+  )
+)
+w1_alpha$total$raw_alpha   # quick pull of just the alpha value
+
+# ---- Wave 2: 18 items (same structure as Wave 1) ----
+w2_alpha <- psych::alpha(
+  w2_sub %>% select(
+    H2FS1, H2FS2, H2FS3, H2FS4_r, H2FS5, H2FS6, H2FS7,
+    H2FS8_r, H2FS9, H2FS10, H2FS11_r, H2FS12, H2FS13,
+    H2FS14, H2FS15_r, H2FS16, H2FS17, H2FS18
+  )
+)
+w2_alpha$total$raw_alpha
+
+# ---- Wave 3: 9 items ----
+w3_alpha <- psych::alpha(
+  w3_sub %>% select(
+    H3SP5, H3SP6, H3SP7_r, H3SP8, H3SP9,
+    H3SP10, H3SP11, H3SP12, H3SP13
+  )
+)
+w3_alpha$total$raw_alpha
+
+# ---- Wave 4: 9 items ----
+w4_alpha <- psych::alpha(
+  w4_sub %>% select(
+    H4MH18, H4MH19, H4MH20_r, H4MH22, H4MH23,
+    H4MH24_r, H4MH25_r, H4MH26, H4MH27
+  )
+)
+w4_alpha$total$raw_alpha
+
+# ---- View full output (item-level detail, alpha-if-dropped, etc.) ----
+w1_alpha
+w2_alpha
+w3_alpha
+w4_alpha
+```
+```{r}
+w1_alpha$total$raw_alpha
+w2_alpha$total$raw_alpha
+w3_alpha$total$raw_alpha
+w4_alpha$total$raw_alpha
+```
+```{r}
+# Wave 3 reverse items: H3SP7 AND H3SP11 (both missed H3SP11 previously)
+w3_sub <- w3_sub %>%
+  mutate(
+    H3SP7_r  = 3 - H3SP7,    # "felt just as good as other people"
+    H3SP11_r = 3 - H3SP11    # "enjoyed life"
+  )
+```
+
+```{r}
+w3_alpha <- psych::alpha(
+  w3_sub %>% select(
+    H3SP5, H3SP6, H3SP7_r, H3SP8, H3SP9,
+    H3SP10, H3SP11_r, H3SP12, H3SP13
+  )
+)
+w3_alpha$total$raw_alpha
+```
+
