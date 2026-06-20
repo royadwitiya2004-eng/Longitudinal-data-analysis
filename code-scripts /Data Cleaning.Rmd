@@ -3,10 +3,10 @@ title: "Data Cleaning"
 output: html_document
 ---
 
-
 ```{r}
 library(haven)
 library(dplyr)
+library(tidyverse)
 
 #load w1 to w4
 w1 <- load("data w1 to w4/21600-0001-Data copy.rda") # Wave I in-home
@@ -14,13 +14,54 @@ w2<- load("data w1 to w4/21600-0005-Data copy.rda") # Wave II in-home
 w3 <- load("data w1 to w4/21600-0008-Data copy.rda") # Wave III in-home
 w4 <- load("data w1 to w4/21600-0022-Data copy.rda") # Wave IV in-home
 
+load("data w1 to w4/21600-0001-Data copy.rda")
+ls()   # check the new object name, then rename it to w1
+load("data w1 to w4/21600-0005-Data copy.rda")
+ls()   # check the new object name, then rename it to w2
+load("data w1 to w4/21600-0008-Data copy.rda")
+ls()   # check, then rename to w3
+load("data w1 to w4/21600-0022-Data copy.rda")
+ls()   # check, then rename to w4
+
+#This reassigns w1 through w4 to point at your actual dataframes instead of the leftover character strings.
+w1 <- da21600.0001   # Wave I in-home
+w2 <- da21600.0005   # Wave II in-home
+w3 <- da21600.0008   # Wave III in-home
+w4 <- da21600.0022   # Wave IV in-home
+
 View(w4)
 
+#check if data frames are properly saved 
+class(w1)      # should return "data.frame" or "tbl_df"/"tbl"
+dim(w1)        # should show rows x columns, e.g. 6504 x ~2700
+names(w1)[1:10]  # peek at the first few column names to confirm it looks right
+
+#since you no longer need the original da21600.xxxx objects once you've reassigned them to w1–w4, and they're large, you can free up memory:
+rm(da21600.0001, da21600.0005, da21600.0008, da21600.0022, w1_name)
+gc()  # trigger garbage collection to actually reclaim memory
+
+
+
+######## WEIGHTS ISSUE #######################
+#bruh some variable names are not in W1.....
+names(w1)[grepl("^AID$", names(w1), ignore.case = TRUE)]
+names(w1)[grepl("^AID$", names(w1), ignore.case = TRUE)]
+names(w1)[grepl("CLUSTER", names(w1), ignore.case = TRUE)]
+#okay the weights for each wave are in another file so need to load them in
+load("data w1 to w4/21600-0004-Data copy.rda")
+ls()   # confirm the object name, e.g. da21600.0004
+#not working... will deal with this LATER
+
+
 #Each wave file has hundreds of variables. If you merge everything first, you end up with a dataset thousands of columns wide, which is slow and confusing. Instead, select your variables of interest from each wave first, keeping AID in every one:
-w1_sub <- w1 %>% select(AID, 
-                         GSWGT1,      # Wave I cross-sectional weight
-                         CLUSTER2,    # PSU variable (needed for all analyses)
-                         REGION,      # stratification variable
+
+#variables not present: 
+    #GSWGT1,  # Wave I cross-sectional weight    
+    #CLUSTER2,    # PSU variable (needed for all analyses)
+    #REGION,      # stratification variable
+
+
+w1_sub <- w1 %>% select(AID,        #participant ID
                          # --- your W1 variables here ---
                          # --- Race -----
                          H1GI6A,      # race (Hispanic)
@@ -129,16 +170,16 @@ H1PR5,   # Q5  How much do you feel that people in your family understand you?
 H1PR6,   # Q6  How much do you feel that you want to leave home?  [REVERSE CODE]
 H1PR7,   # Q7  How much do you feel that you and your family have fun together?
 H1PR8,   # Q8  How much do you feel that your family pays attention to you?
-H1PF25)   # Q25  Overall, you are satisfied with your relationship with your father
+H1PF25)  # Q25  Overall, you are satisfied with your relationship with your father
 
 
-
+View(w1_sub)
 ```
-
 
 ```{r}
 #Wave 2- excludes race and family income
-w2_sub <- w2 %>% select(# =============================================================
+w2_sub <- w2 %>% select(AID,        #participant ID
+# =============================================================
 # Add Health WAVE II In-Home Questionnaire
 # Requested constructs (bare variable codes; comment = #question)
 # Bare names work inside dplyr::select(df, ...) / tidyselect.
@@ -146,7 +187,6 @@ w2_sub <- w2 %>% select(# ======================================================
 # =============================================================
 
 # ---- DEPRESSION : Section 10 Feelings Scale (CES-D, 19 items) ----
-depression <- c(
   H2FS1,   # Q1  bothered by things that don't usually bother you
   H2FS2,   # Q2  didn't feel like eating / poor appetite
   H2FS3,   # Q3  couldn't shake off the blues
@@ -165,29 +205,25 @@ depression <- c(
   H2FS16,  # Q16 felt sad
   H2FS17,  # Q17 felt people disliked you
   H2FS18,  # Q18 hard to get started doing things
-  H2FS19   # Q19 felt life was not worth living
-),
+  H2FS19,   # Q19 felt life was not worth living
+
 
 # ---- AGE : Section 1 (birth date) + interview date ----
-age <- c(
   H2GI1M,  # Q1  birth month
   H2GI1Y,  # Q1  birth year
   IMONTH2, # interview month  (use with birth date to compute age)
-  IYEAR2   # interview year
-),
+  IYEAR2,   # interview year
+
 # No pre-computed age variable lives in the questionnaire; age is
 # derived from birth date and interview date (or use the constructed
 # CALCAGE2 from the separate constructed-variables file).
 
 # ---- PARENT EDUCATION : Sections 14 & 15 (resident parents) ----
-parent_education <- c(
   H2RM1,   # S14 Q1  How far in school did she [resident mother] go?
-  H2RF1    # S15 Q1  How far in school did he [resident father] go?
-),
+  H2RF1,    # S15 Q1  How far in school did he [resident father] go?
 # Note: Wave II does NOT re-ask education for NON-resident bio parents.
 
 # ---- PERSONALITY : Section 18 self-description items ----
-personality <- c(
   H2PF12,  # Q12 get what you want b/c you worked hard for it
   H2PF13,  # Q13 go out of your way to avoid problems
   H2PF14,  # Q14 difficult problems make you very upset
@@ -203,13 +239,12 @@ personality <- c(
   H2PF24,  # Q24 like yourself the way you are
   H2PF25,  # Q25 doing everything just about right
   H2PF26,  # Q26 feel socially accepted
-  H2PF27   # Q27 feel loved and wanted
-),
+  H2PF27,   # Q27 feel loved and wanted
+
 
 # ---- PERSONALITY FACTORS : Section 18 dispositional-trait items ----
 # (The trait-like subset; same battery as above. Pick whichever set
 #  matches your construct — these read most like "factors".)
-personality_factors <- c(
   H2PF28,  # Q28 you like to take risks
   H2PF29,  # Q29 you are independent
   H2PF30,  # Q30 you are shy
@@ -217,12 +252,11 @@ personality_factors <- c(
   H2PF32,  # Q32 you are sensitive to others' feelings
   H2PF33,  # Q33 you are emotional
   H2PF34,  # Q34 you can determine what will happen in your life
-  H2PF35   # Q35 you live without much thought for the future
-),
+  H2PF35,   # Q35 you live without much thought for the future
+
 
 # ---- PEER NETWORKS : Section 20 Friends ----
 # Suffix A–E = friend 1–5;  MF = male friend, FF = female friend.
-peer_networks <- c(
   FR_FLAG2,                                  # # of nominations allowed (1 vs up to 5)
   H2MF1, H2FF1,                              # Q1  name/ID of 1st male / female friend
   H2MF3A, H2MF3B, H2MF3C, H2MF3D,           # Q3  additional male-friend nominations
@@ -244,21 +278,13 @@ peer_networks <- c(
   H2FF12A,H2FF12B,H2FF12C,H2FF12D,H2FF12E,  # Q12 (female friends)
   H2FF13A,H2FF13B,H2FF13C,H2FF13D,H2FF13E,  # Q13 (female friends)
   H2FF14A,H2FF14B,H2FF14C,H2FF14D,H2FF14E,  # Q14 (female friends)
-  H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E   # Q15 (female friends)
-))
+  H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E)   # Q15 (female friends)
 
-#Then merge all five into one wide dataset:
-combined <- w1_sub %>%
-  left_join(w2_sub, by = "AID") %>%
-  left_join(w3_sub, by = "AID") %>%
-  left_join(w4_sub, by = "AID") %>%
-  left_join(w5_sub, by = "AID")
 ```
-
 
 ```{r}
 #Wave 3: excludes parent education
-w3_sub <- w3 %>% selec(# =============================================================
+w3_sub <- w3 %>% select(# =============================================================
 # Add Health WAVE III In-Home Questionnaire
 # Requested constructs (bare codes; comment = #question)
 # Bare names work inside dplyr::select(df, ...) / tidyselect.
@@ -401,7 +427,6 @@ peer_networks <- c(
 
 ```
 
-
 ```{r}
 #Wave 4: excludes peer networks
 # =============================================================
@@ -506,4 +531,12 @@ personality_factors <- c(
 
 ```
 
-Data Cleaning File to combine datasets and isolate variables
+Okay gonna try to merge the waves into one dataset
+
+```{r}
+
+combined <- w1_sub %>%
+  left_join(w2_sub, by = "AID") %>%
+  left_join(w3_sub, by = "AID") %>%
+  left_join(w4_sub, by = "AID") 
+```
