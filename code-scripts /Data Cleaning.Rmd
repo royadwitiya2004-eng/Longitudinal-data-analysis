@@ -42,15 +42,38 @@ gc()  # trigger garbage collection to actually reclaim memory
 
 
 
-######## WEIGHTS ISSUE #######################
+######## WEIGHTS #######################
 #bruh some variable names are not in W1.....
 names(w1)[grepl("^AID$", names(w1), ignore.case = TRUE)]
 names(w1)[grepl("^AID$", names(w1), ignore.case = TRUE)]
 names(w1)[grepl("CLUSTER", names(w1), ignore.case = TRUE)]
 #okay the weights for each wave are in another file so need to load them in
-load("data w1 to w4/21600-0004-Data copy.rda")
+
+#wave 1 weights (DS4)
+weights <- load("data w1 to w4/21600-0004-Data copy.rda")
 ls()   # confirm the object name, e.g. da21600.0004
-#not working... will deal with this LATER
+w1_weights <- da21600.0004
+View(w1_weights)
+
+#wave 2 weights (DS7)
+weights_2 <- load("data w1 to w4/21600-0007-Data copy.rda")
+ls()   # confirm the object name, e.g. da21600.0004
+w2_weights <- da21600.0007
+View(w2_weights)
+
+#wave 3 weights (DS21)
+weights_3 <- load("data w1 to w4/21600-0021-Data copy.rda")
+ls()   # confirm the object name, e.g. da21600.0004
+w3_weights <- da21600.0021
+View(w3_weights)
+
+
+#wave 4 weights (DS31)
+weights_4 <- load("data w1 to w4/21600-0031-Data copy.rda")
+ls()   # confirm the object name, e.g. da21600.0004
+w4_weights <-da21600.0031
+View(w4_weights)
+
 
 
 #Each wave file has hundreds of variables. If you merge everything first, you end up with a dataset thousands of columns wide, which is slow and confusing. Instead, select your variables of interest from each wave first, keeping AID in every one:
@@ -185,6 +208,13 @@ H1PF25)  # Q25  Overall, you are satisfied with your relationship with your fath
 >>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
 
 
+# Merge weights into your already-built w1_sub
+w1_sub <- w1_sub %>%
+  left_join(
+    w1_weights %>% select(AID, GSWGT1, CLUSTER2),
+    by = "AID"
+  )
+
 View(w1_sub)
 ```
 
@@ -301,18 +331,28 @@ w2_sub <- w2 %>% select(AID,        #participant ID
   H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E)   # Q15 (female friends)
 >>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
 
+
+# Merge weights into your already-built w2_sub
+w2_sub <- w2_sub %>%
+  left_join(
+    w2_weights %>% select(AID, GSWGT2, CLUSTER2),
+    by = "AID"
+  )
+
+View(w2_sub)
+
 ```
 
 ```{r}
 #Wave 3: excludes parent education
-w3_sub <- w3 %>% select(# =============================================================
+w3_sub <- w3 %>% select(AID,        #participant ID
+# =============================================================
 # Add Health WAVE III In-Home Questionnaire
 # Requested constructs (bare codes; comment = #question)
 # Bare names work inside dplyr::select(df, ...) / tidyselect.
 # =============================================================
 
 # ---- DEPRESSION : Section 12 (abbreviated 9-item CES-D) ----
-depression <- c(
   H3SP5,   # Q5  bothered by things that don't usually bother you
   H3SP6,   # Q6  couldn't shake off the blues
   H3SP7,   # Q7  felt just as good as other people        (REVERSE)
@@ -321,13 +361,12 @@ depression <- c(
   H3SP10,  # Q10 too tired to do things
   H3SP11,  # Q11 enjoyed life                             (REVERSE)
   H3SP12,  # Q12 felt sad
-  H3SP13   # Q13 felt people disliked you
-),
+  H3SP13,   # Q13 felt people disliked you
+
 # (H3SP1-4 are laughing/crying/life-satisfaction/self-rated intelligence,
 #  not part of the CES-D depression scale.)
 
 # ---- RACE / ETHNICITY : Section 1 Demographics ----
-race <- c(
   H3OD2,   # Q2  Are you of Hispanic or Latino origin?
   H3OD3A,  # Q3  Hispanic bkgd: Mexican/Mexican American
   H3OD3B,  # Q3  Hispanic bkgd: Chicano/Chicana
@@ -346,29 +385,25 @@ race <- c(
   H3OD5E,  # Q5  Asian detail: Korean
   H3OD5F,  # Q5  Asian detail: Vietnamese
   H3OD5G,  # Q5  Asian detail: other
-  H3OD6    # Q6  single category that best describes your race
-),
+  H3OD6,    # Q6  single category that best describes your race
 
 # ---- AGE : Section 1 + constructed age ----
-age <- c(
-  CALCAGE3,# constructed: calculated age at time of interview  <-- use this
-  H3OD1M,  # Q1  birth month
-  H3OD1Y,  # Q1  birth year
-  IYEAR3   # interview year (for deriving age if needed)
-),
+  CALCAGE3, # constructed: calculated age at time of interview  <-- use this
+  H3OD1M,   # Q1  birth month
+  H3OD1Y,   # Q1  birth year
+  IYEAR3,   # interview year (for deriving age if needed)
+
 
 # ---- FAMILY / HOUSEHOLD INCOME : Section 15 Economics ----
-family_income <- c(
   H3EC6,   # Q6  total household income (you + co-resident members), exact
   H3EC7,   # Q7  best guess of total household income before taxes (bracketed)
   H3EC8,   # Q8  total household income incl. spouse, exact
-  H3EC9    # Q9  best guess of total household income before taxes (bracketed)
-),
+  H3EC9,   # Q9  best guess of total household income before taxes (bracketed)
+
 # Personal (not family) income if you need it: H3EC2/H3EC3 (personal total),
 # H3EC4/H3EC5 (earnings). Income-source yes/no flags: H3EC1A-H3EC1H.
 
 # ---- PERSONALITY : Section 20 BEM Sex-Role Inventory (trait adjectives) ----
-personality <- c(
   H3BM9,   # Q9  I defend my own beliefs
   H3BM10,  # Q10 I am affectionate
   H3BM11,  # Q11 I am conscientious
@@ -398,11 +433,10 @@ personality <- c(
   H3BM35,  # Q35 I am tactful
   H3BM36,  # Q36 I am aggressive
   H3BM37,  # Q37 I am gentle
-  H3BM38   # Q38 I am conventional
-),
+  H3BM38,  # Q38 I am conventional
+
 
 # ---- PERSONALITY FACTORS : risk propensity + self-description ----
-personality_factors <- c(
   # Section 21: Propensity for Risk (sensation-seeking, forced-choice)
   H3PR1, H3PR2, H3PR3, H3PR4, H3PR5, H3PR6, H3PR7,
   # Section 12: self-description / self-esteem / disposition items
@@ -416,12 +450,10 @@ personality_factors <- c(
   H3SP24,  # Q24 you live without much thought for the future
   H3SP25,  # Q25 important to fit into the group you're with
   H3SP26,  # Q26 behavior depends on your mood at the time
-  H3SP27   # Q27 behavior depends on how others want you to behave
-),
+  H3SP27,   # Q27 behavior depends on how others want you to behave
 
 # ---- PEER NETWORKS : Section 6 Friends (friend-by-friend roster) ----
 # Suffix _A.._J = friend slot 1-10.  One value per (item x friend).
-peer_networks <- c(
   # Q1  friend nomination / identifier
   H3FS1_A,H3FS1_B,H3FS1_C,H3FS1_D,H3FS1_E,H3FS1_F,H3FS1_G,H3FS1_H,H3FS1_I,H3FS1_J,
   # Q2  current relationship to friend
@@ -444,19 +476,27 @@ peer_networks <- c(
   H3FS9_A,H3FS9_B,H3FS9_C,H3FS9_D,H3FS9_E,H3FS9_F,H3FS9_G,H3FS9_H,H3FS9_I,H3FS9_J,
   # Q10 before it ended, how often you had contact
   H3FS10_A,H3FS10_B,H3FS10_C,H3FS10_D,H3FS10_E,H3FS10_F,H3FS10_G,H3FS10_H,H3FS10_I,H3FS10_J
-))
+)
 
+# Merge weights into your already-built w3_sub
+w3_sub <- w3_sub %>%
+  left_join(
+    w3_weights %>% select(AID, GSWGT3, CLUSTER2),
+    by = "AID"
+  )
+
+View(w3_sub)
 ```
 
 ```{r}
 #Wave 4: excludes peer networks
+w4_sub <- w4 %>% select(AID,
 # =============================================================
 # Add Health WAVE IV In-Home Questionnaire
 # Requested constructs (bare codes; comment = #question)
 # =============================================================
 
 # ---- DEPRESSION : module H4MH (9-item CES-D, past 7 days) ----
-depression <- c(
   H4MH18,  # Q18 bothered by things that don't usually bother you
   H4MH19,  # Q19 could not shake off the blues
   H4MH20,  # Q20 felt just as good as other people        (REVERSE)
@@ -465,34 +505,31 @@ depression <- c(
   H4MH24,  # Q24 felt happy                                (REVERSE)
   H4MH25,  # Q25 enjoyed life                              (REVERSE)
   H4MH26,  # Q26 felt sad
-  H4MH27   # Q27 felt people disliked you
-)
+  H4MH27,   # Q27 felt people disliked you
+
 # (Q21 doesn't exist; numbering skips it. H4MH3-H4MH6 are the
 #  4-item Cohen Perceived Stress Scale; H4MH2 = felt isolated —
 #  related mental-health items if you want them, not part of CES-D.)
 
 # ---- AGE : module H4OD + interview date ----
-age <- c(
   H4OD1M,  # Q1M birth month
   H4OD1Y,  # Q1Y birth year
   IMONTH4, # month of Wave IV interview
-  IYEAR4   # year of Wave IV interview  (derive age from these)
-)
+  IYEAR4,   # year of Wave IV interview  (derive age from these)
+
 # No calculated-age variable lives in the questionnaire; use the
 # constructed age variable from the separate constructed-vars file.
 
 # ---- FAMILY / HOUSEHOLD INCOME : module H4EC ----
-family_income <- c(
   H4EC1,   # Q1  total household income (you + everyone in household)
   H4EC2,   # Q2  your personal earnings (amount)
-  H4EC3    # Q3  best guess of personal earnings before taxes (bracketed)
-)
+  H4EC3,    # Q3  best guess of personal earnings before taxes (bracketed)
+
 # Related economic items if useful: H4EC7 assets, H4EC8 debts,
 # H4EC11-H4EC15 economic hardship, H4EC16-H4EC17 childhood household SES,
 # H4EC19 subjective social-status ladder.
 
 # ---- PERSONALITY : module H4PE (full battery) ----
-personality <- c(
   H4PE1,   # Q1  I am the life of the party
   H4PE2,   # Q2  I sympathize with others' feelings
   H4PE4,   # Q4  I have frequent mood swings
@@ -528,12 +565,11 @@ personality <- c(
   H4PE37,  # Q37 little I can do to change important things in my life
   H4PE38,  # Q38 other people determine most of what I can/cannot do
   H4PE39,  # Q39 many things interfere with what I want to do
-  H4PE40   # Q40 I have little control over things that happen to me
-)
+  H4PE40,   # Q40 I have little control over things that happen to me
+
 
 # ---- PERSONALITY FACTORS : 20-item Mini-IPIP Big Five (subset of H4PE) ----
 # Key to official Mini-IPIP scoring; several items are reverse-keyed.
-personality_factors <- c(
   # Extraversion
   H4PE1, H4PE9, H4PE17, H4PE25,
   # Agreeableness
@@ -543,8 +579,7 @@ personality_factors <- c(
   # Neuroticism
   H4PE4, H4PE12, H4PE20, H4PE28,
   # Openness / Intellect
-  H4PE5, H4PE13, H4PE21, H4PE29
-)
+  H4PE5, H4PE13, H4PE21, H4PE29)
 # Other H4PE sub-constructs you may want separately:
 #  Optimism (LOT-R style): H4PE7, H4PE15, H4PE23
 #  Mastery / locus of control: H4PE37, H4PE38, H4PE39, H4PE40
@@ -552,6 +587,7 @@ personality_factors <- c(
 <<<<<<< HEAD
 
 
+<<<<<<< HEAD
 #Weight files — remember the weight variables for W3, W4, and the longitudinal weights live in separate weight files (DS19/DS21 for W3, DS31 for W4, DS42 for W5), not necessarily in the in-home questionnaire files themselves. You'll need an extra merge step for those, e.g.:
 
 w4_weights <- read_dta("DS0031/21600-0031-Data.dta") %>%
@@ -562,6 +598,16 @@ combined <- combined %>%
 =======
 
 >>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
+=======
+# Merge weights into your already-built w4_sub
+w4_sub <- w4_sub %>%
+  left_join(
+    w4_weights %>% select(AID, GSWGT4, CLUSTER2),
+    by = "AID"
+  )
+
+View(w4_sub)
+>>>>>>> 32b59f150963b3279aa4e1841432cf765c347e09
 ```
 
 Okay gonna try to merge the waves into one dataset
