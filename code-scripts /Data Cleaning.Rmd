@@ -460,7 +460,7 @@ w3_sub <- w3 %>% select(AID,        #participant ID
 # Merge weights into your already-built w3_sub
 w3_sub <- w3_sub %>%
   left_join(
-    w3_weights %>% select(AID, GSWGT3, GSWGT3_2, CLUSTER2),
+    w3_weights %>% select(AID, GSWGT3, CLUSTER2),
     by = "AID"
   )
 
@@ -568,7 +568,7 @@ w4_sub <- w4 %>% select(AID,
 # Merge weights into your already-built w4_sub
 w4_sub <- w4_sub %>%
   left_join(
-    w4_weights %>% select(AID, GSWGT4,GSWGT4_2 , CLUSTER2),
+    w4_weights %>% select(AID, GSWGT4, CLUSTER2),
     by = "AID"
   )
 
