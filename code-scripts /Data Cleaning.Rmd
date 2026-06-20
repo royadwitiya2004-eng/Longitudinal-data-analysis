@@ -178,10 +178,7 @@ w1_sub <- w1 %>% select(AID,        #participant ID
   # ---- Section 18: warmth / communication / satisfaction (FATHER) ----
   H1PF23,   # Q23  Most of the time, your father is warm and loving toward you
   H1PF24,   # Q24  You are satisfied with the way your father and you communicate
-<<<<<<< HEAD
 
-=======
->>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
   H1PF25,    # Q25  Overall, you are satisfied with your relationship with your father
   
   #------ Section 35: Protective Factors ------
@@ -197,15 +194,7 @@ H1PR5,   # Q5  How much do you feel that people in your family understand you?
 H1PR6,   # Q6  How much do you feel that you want to leave home?  [REVERSE CODE]
 H1PR7,   # Q7  How much do you feel that you and your family have fun together?
 H1PR8,   # Q8  How much do you feel that your family pays attention to you?
-<<<<<<< HEAD
-
-  H1PF25    # Q25  Overall, you are satisfied with your relationship with your father
-
-)
-
-=======
-H1PF25)  # Q25  Overall, you are satisfied with your relationship with your father
->>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
+H1PF25)    # Q25  Overall, you are satisfied with your relationship with your father
 
 
 # Merge weights into your already-built w1_sub
@@ -219,10 +208,6 @@ View(w1_sub)
 ```
 
 ```{r}
-<<<<<<< HEAD
-
-=======
->>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
 #Wave 2- excludes race and family income
 w2_sub <- w2 %>% select(AID,        #participant ID
 # =============================================================
@@ -324,12 +309,7 @@ w2_sub <- w2 %>% select(AID,        #participant ID
   H2FF12A,H2FF12B,H2FF12C,H2FF12D,H2FF12E,  # Q12 (female friends)
   H2FF13A,H2FF13B,H2FF13C,H2FF13D,H2FF13E,  # Q13 (female friends)
   H2FF14A,H2FF14B,H2FF14C,H2FF14D,H2FF14E,  # Q14 (female friends)
-<<<<<<< HEAD
-  H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E   # Q15 (female friends)
-))
-=======
   H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E)   # Q15 (female friends)
->>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
 
 
 # Merge weights into your already-built w2_sub
@@ -584,21 +564,8 @@ w4_sub <- w4 %>% select(AID,
 #  Optimism (LOT-R style): H4PE7, H4PE15, H4PE23
 #  Mastery / locus of control: H4PE37, H4PE38, H4PE39, H4PE40
 #  Risk / decision style: H4PE33, H4PE34, H4PE35
-<<<<<<< HEAD
 
 
-<<<<<<< HEAD
-#Weight files — remember the weight variables for W3, W4, and the longitudinal weights live in separate weight files (DS19/DS21 for W3, DS31 for W4, DS42 for W5), not necessarily in the in-home questionnaire files themselves. You'll need an extra merge step for those, e.g.:
-
-w4_weights <- read_dta("DS0031/21600-0031-Data.dta") %>%
-  select(AID, GSWGT4, GSWGT134)
-
-combined <- combined %>%
-  left_join(w4_weights, by = "AID")
-=======
-
->>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
-=======
 # Merge weights into your already-built w4_sub
 w4_sub <- w4_sub %>%
   left_join(
@@ -607,7 +574,6 @@ w4_sub <- w4_sub %>%
   )
 
 View(w4_sub)
->>>>>>> 32b59f150963b3279aa4e1841432cf765c347e09
 ```
 
 Okay gonna try to merge the waves into one dataset
