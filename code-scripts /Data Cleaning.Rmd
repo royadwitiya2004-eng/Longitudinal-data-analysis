@@ -178,10 +178,6 @@ w1_sub <- w1 %>% select(AID,        #participant ID
   # ---- Section 18: warmth / communication / satisfaction (FATHER) ----
   H1PF23,   # Q23  Most of the time, your father is warm and loving toward you
   H1PF24,   # Q24  You are satisfied with the way your father and you communicate
-<<<<<<< HEAD
-
-=======
->>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
   H1PF25,    # Q25  Overall, you are satisfied with your relationship with your father
   
   #------ Section 35: Protective Factors ------
@@ -197,15 +193,12 @@ H1PR5,   # Q5  How much do you feel that people in your family understand you?
 H1PR6,   # Q6  How much do you feel that you want to leave home?  [REVERSE CODE]
 H1PR7,   # Q7  How much do you feel that you and your family have fun together?
 H1PR8,   # Q8  How much do you feel that your family pays attention to you?
-<<<<<<< HEAD
 
   H1PF25    # Q25  Overall, you are satisfied with your relationship with your father
 
 )
 
-=======
-H1PF25)  # Q25  Overall, you are satisfied with your relationship with your father
->>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
+
 
 
 # Merge weights into your already-built w1_sub
@@ -219,10 +212,7 @@ View(w1_sub)
 ```
 
 ```{r}
-<<<<<<< HEAD
 
-=======
->>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
 #Wave 2- excludes race and family income
 w2_sub <- w2 %>% select(AID,        #participant ID
 # =============================================================
@@ -324,12 +314,9 @@ w2_sub <- w2 %>% select(AID,        #participant ID
   H2FF12A,H2FF12B,H2FF12C,H2FF12D,H2FF12E,  # Q12 (female friends)
   H2FF13A,H2FF13B,H2FF13C,H2FF13D,H2FF13E,  # Q13 (female friends)
   H2FF14A,H2FF14B,H2FF14C,H2FF14D,H2FF14E,  # Q14 (female friends)
-<<<<<<< HEAD
+
   H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E   # Q15 (female friends)
-))
-=======
-  H2FF15A,H2FF15B,H2FF15C,H2FF15D,H2FF15E)   # Q15 (female friends)
->>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
+)
 
 
 # Merge weights into your already-built w2_sub
@@ -486,128 +473,6 @@ w3_sub <- w3_sub %>%
   )
 
 View(w3_sub)
-```
-
-```{r}
-#Wave 4: excludes peer networks
-w4_sub <- w4 %>% select(AID,
-# =============================================================
-# Add Health WAVE IV In-Home Questionnaire
-# Requested constructs (bare codes; comment = #question)
-# =============================================================
-
-# ---- DEPRESSION : module H4MH (9-item CES-D, past 7 days) ----
-  H4MH18,  # Q18 bothered by things that don't usually bother you
-  H4MH19,  # Q19 could not shake off the blues
-  H4MH20,  # Q20 felt just as good as other people        (REVERSE)
-  H4MH22,  # Q22 felt depressed
-  H4MH23,  # Q23 felt too tired to do things
-  H4MH24,  # Q24 felt happy                                (REVERSE)
-  H4MH25,  # Q25 enjoyed life                              (REVERSE)
-  H4MH26,  # Q26 felt sad
-  H4MH27,   # Q27 felt people disliked you
-
-# (Q21 doesn't exist; numbering skips it. H4MH3-H4MH6 are the
-#  4-item Cohen Perceived Stress Scale; H4MH2 = felt isolated —
-#  related mental-health items if you want them, not part of CES-D.)
-
-# ---- AGE : module H4OD + interview date ----
-  H4OD1M,  # Q1M birth month
-  H4OD1Y,  # Q1Y birth year
-  IMONTH4, # month of Wave IV interview
-  IYEAR4,   # year of Wave IV interview  (derive age from these)
-
-# No calculated-age variable lives in the questionnaire; use the
-# constructed age variable from the separate constructed-vars file.
-
-# ---- FAMILY / HOUSEHOLD INCOME : module H4EC ----
-  H4EC1,   # Q1  total household income (you + everyone in household)
-  H4EC2,   # Q2  your personal earnings (amount)
-  H4EC3,    # Q3  best guess of personal earnings before taxes (bracketed)
-
-# Related economic items if useful: H4EC7 assets, H4EC8 debts,
-# H4EC11-H4EC15 economic hardship, H4EC16-H4EC17 childhood household SES,
-# H4EC19 subjective social-status ladder.
-
-# ---- PERSONALITY : module H4PE (full battery) ----
-  H4PE1,   # Q1  I am the life of the party
-  H4PE2,   # Q2  I sympathize with others' feelings
-  H4PE4,   # Q4  I have frequent mood swings
-  H4PE5,   # Q5  I have a vivid imagination
-  H4PE6,   # Q6  I worry about things
-  H4PE7,   # Q7  I'm always optimistic about my future
-  H4PE9,   # Q9  I don't talk a lot
-  H4PE10,  # Q10 I am not interested in other people's problems
-  H4PE11,  # Q11 I often forget to put things back in their proper place
-  H4PE12,  # Q12 I am relaxed most of the time
-  H4PE13,  # Q13 I am not interested in abstract ideas
-  H4PE14,  # Q14 I am not easily bothered by things
-  H4PE15,  # Q15 I hardly ever expect things to go my way
-  H4PE16,  # Q16 I rarely get irritated
-  H4PE17,  # Q17 I talk to a lot of different people at parties
-  H4PE18,  # Q18 I feel others' emotions
-  H4PE19,  # Q19 I like order
-  H4PE20,  # Q20 I get upset easily
-  H4PE21,  # Q21 I have difficulty understanding abstract ideas
-  H4PE22,  # Q22 I get stressed out easily
-  H4PE23,  # Q23 I expect more good things to happen than bad
-  H4PE24,  # Q24 I lose my temper
-  H4PE25,  # Q25 I keep in the background
-  H4PE26,  # Q26 I am not really interested in others
-  H4PE27,  # Q27 I make a mess of things
-  H4PE28,  # Q28 I seldom feel blue
-  H4PE29,  # Q29 I do not have a good imagination
-  H4PE30,  # Q30 I don't worry about things that have already happened
-  H4PE32,  # Q32 I keep my cool
-  H4PE33,  # Q33 I avoid having to deal with problems in my life
-  H4PE34,  # Q34 I make decisions on 'gut feeling' w/o thinking
-  H4PE35,  # Q35 I like to take risks
-  H4PE37,  # Q37 little I can do to change important things in my life
-  H4PE38,  # Q38 other people determine most of what I can/cannot do
-  H4PE39,  # Q39 many things interfere with what I want to do
-  H4PE40,   # Q40 I have little control over things that happen to me
-
-
-# ---- PERSONALITY FACTORS : 20-item Mini-IPIP Big Five (subset of H4PE) ----
-# Key to official Mini-IPIP scoring; several items are reverse-keyed.
-  # Extraversion
-  H4PE1, H4PE9, H4PE17, H4PE25,
-  # Agreeableness
-  H4PE2, H4PE10, H4PE18, H4PE26,
-  # Conscientiousness
-  H4PE11, H4PE19, H4PE27,            # (+ 1 more per official key)
-  # Neuroticism
-  H4PE4, H4PE12, H4PE20, H4PE28,
-  # Openness / Intellect
-  H4PE5, H4PE13, H4PE21, H4PE29)
-# Other H4PE sub-constructs you may want separately:
-#  Optimism (LOT-R style): H4PE7, H4PE15, H4PE23
-#  Mastery / locus of control: H4PE37, H4PE38, H4PE39, H4PE40
-#  Risk / decision style: H4PE33, H4PE34, H4PE35
-<<<<<<< HEAD
-
-
-<<<<<<< HEAD
-#Weight files — remember the weight variables for W3, W4, and the longitudinal weights live in separate weight files (DS19/DS21 for W3, DS31 for W4, DS42 for W5), not necessarily in the in-home questionnaire files themselves. You'll need an extra merge step for those, e.g.:
-
-w4_weights <- read_dta("DS0031/21600-0031-Data.dta") %>%
-  select(AID, GSWGT4, GSWGT134)
-
-combined <- combined %>%
-  left_join(w4_weights, by = "AID")
-=======
-
->>>>>>> b68de87e245437277b2f6d274ef3c24f6b3570ee
-=======
-# Merge weights into your already-built w4_sub
-w4_sub <- w4_sub %>%
-  left_join(
-    w4_weights %>% select(AID, GSWGT4, CLUSTER2),
-    by = "AID"
-  )
-
-View(w4_sub)
->>>>>>> 32b59f150963b3279aa4e1841432cf765c347e09
 ```
 
 Okay gonna try to merge the waves into one dataset
