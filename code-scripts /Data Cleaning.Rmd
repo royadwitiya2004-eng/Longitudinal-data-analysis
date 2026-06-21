@@ -837,6 +837,58 @@ w3_alpha$total$raw_alpha
 ```
 
 ```{r}
+#CES-D composite scores — items exist, sums don't yet
+
+#Step 1: sum the CES-D Scores
+w1_sub <- w1_sub %>%
+  mutate(cesd_w1 = rowSums(select(., H1FS1, H1FS2, H1FS3, H1FS4_r, H1FS5,
+                                       H1FS6, H1FS7, H1FS8_r, H1FS9, H1FS10,
+                                       H1FS11_r, H1FS12, H1FS13, H1FS14,
+                                       H1FS15_r, H1FS16, H1FS17, H1FS18),
+                                na.rm = FALSE))
+
+# Manually check one row by hand
+w1_sub %>%
+  select(H1FS1, H1FS2, H1FS3, H1FS4_r, H1FS5, H1FS6, H1FS7, H1FS8_r, H1FS9,
+         H1FS10, H1FS11_r, H1FS12, H1FS13, H1FS14, H1FS15_r, H1FS16, H1FS17, H1FS18) %>%
+  slice(1:5) %>%
+  mutate(manual_sum = rowSums(across(everything()), na.rm = FALSE))
+
+
+w2_sub <- w2_sub %>%
+  mutate(cesd_w2 = rowSums(select(., H2FS1, H2FS2, H2FS3, H2FS4_r, H2FS5,
+                                       H2FS6, H2FS7, H2FS8_r, H2FS9, H2FS10,
+                                       H2FS11_r, H2FS12, H2FS13, H2FS14,
+                                       H2FS15_r, H2FS16, H2FS17, H2FS18),
+                                na.rm = FALSE))
+summary(w2_sub$cesd_w2)#***
+
+w3_sub <- w3_sub %>%
+  mutate(cesd_w3 = rowSums(select(., H3SP5, H3SP6, H3SP7_r, H3SP8, H3SP9,
+                                       H3SP10, H3SP11, H3SP12, H3SP13),
+                                na.rm = FALSE))
+summary(w3_sub$cesd_w3)
+
+w4_sub <- w4_sub %>%
+  mutate(cesd_w4 = rowSums(select(., H4MH18, H4MH19, H4MH20_r, H4MH22,
+                                       H4MH23, H4MH24_r, H4MH25_r, H4MH26,
+                                       H4MH27),
+                                na.rm = FALSE))
+summary(w4_sub$cesd_w4)
+
+
+#Step 2: Average the sums to account for different scales across questions. W1/W2 use an 18-item CES-D subset (range 0–54) while W3/W4 use a 9-item subset (range 0–27). Summed scores aren't on the same metric across waves, which is a real problem for growth modelling — a "high" score at W1 isn't comparable to a "high" score at W3 purely because there are half as many items. The standard fix is to convert each wave's sum to a mean score per item (sum ÷ number of items) rather than a raw sum, so all four waves sit on the same 0–3 scale
+
+cesd_w1_mean = w1_sub$cesd_w1 / 18
+cesd_w2_mean = w2_sub$cesd_w2 / 18 
+cesd_w3_mean = w3_sub$cesd_w3 / 9
+cesd_w4_mean = w4_sub$cesd_w4 / 9
+#!!! use means for analyses
+
+
+```
+
+```{r}
 #Age
 #Growth curve modelling needs a consistent time variable across all waves, and given Add Health's unequal wave spacing, age-at-interview is the right choice over wave number.
 
