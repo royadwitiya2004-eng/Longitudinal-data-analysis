@@ -94,7 +94,10 @@ w1_sub <- w1 %>% select(AID,        #participant ID
                          H1GI6D,      # race (Asian or Pacific Islander)
                          H1GI6E,      # race (Other)
                          # --- AGE ----
-                         H1GI9,       # age at Wave I
+                        H1GI1Y,       # birth year
+                        H1GI1M,
+                        IYEAR,        #interview year
+                        IMONTH,
                          PA12,        # parental education (from parent questionnaire)
                          PA55,       # family income
                         # ---- SEX ----
@@ -620,6 +623,7 @@ table(w4_sub$H4OD1Y, useNA = "always")
 table(w4_sub$IYEAR4, useNA = "always")
 table(w4_sub$H4EC2, useNA = "always")
 ```
+
 ```{r}
 # =============================================================
 # Spot-check remaining Wave 4 numeric candidates
@@ -628,6 +632,7 @@ table(w4_sub$H4OD1Y, useNA = "always")   # birth year
 table(w4_sub$IYEAR4, useNA = "always")   # interview year
 table(w4_sub$H4EC2, useNA = "always")    # personal earnings, amount
 ```
+
 ```{r}
 # =============================================================
 # FINAL targeted sentinel recoding — complete inventory
@@ -659,6 +664,7 @@ combined <- w1_sub %>%
   left_join(w3_sub, by = "AID") %>%
   left_join(w4_sub, by = "AID") 
 ```
+
 ```{r}
 levels(w1_sub$H1FS6)   # confirm: should show "(0) Never/rarely" as the FIRST level
 levels(w3_sub$H3SP9)   # confirm wave 3's labeling convention matches
@@ -803,12 +809,14 @@ w2_alpha
 w3_alpha
 w4_alpha
 ```
+
 ```{r}
 w1_alpha$total$raw_alpha
 w2_alpha$total$raw_alpha
 w3_alpha$total$raw_alpha
 w4_alpha$total$raw_alpha
 ```
+
 ```{r}
 # Wave 3 reverse items: H3SP7 AND H3SP11 (both missed H3SP11 previously)
 w3_sub <- w3_sub %>%
@@ -828,3 +836,38 @@ w3_alpha <- psych::alpha(
 w3_alpha$total$raw_alpha
 ```
 
+```{r}
+#Age
+#Growth curve modelling needs a consistent time variable across all waves, and given Add Health's unequal wave spacing, age-at-interview is the right choice over wave number.
+
+# Wave 1 — H1GI9 is already age, confirm it's numeric
+
+w1_sub <- w1_sub %>%
+  mutate(
+    IYEAR_num  = as.numeric(str_extract(as.character(IYEAR), "\\d{4}")),
+    H1GI1Y_num = as.numeric(str_extract(as.character(H1GI1Y), "\\d{4}")),
+    age_w1 = (IYEAR_num - H1GI1Y_num))
+summary(w1_sub$age_w1)
+
+# Wave 2 — construct from birth date + interview date
+w2_sub <- w2_sub %>%
+  mutate(
+    IYEAR2_num  = as.numeric(str_extract(as.character(IYEAR2), "\\d{4}")),
+    H2GI1Y_num = as.numeric(str_extract(as.character(H2GI1Y), "\\d{4}")),
+    age_w2 = (IYEAR2_num - H2GI1Y_num))
+summary(w2_sub$age_w2) #w2 took place 1 yr after w1
+
+w2_sub$IYEAR2
+
+# Wave 3 — already have CALCAGE3, just rename for consistency
+w3_sub <- w3_sub %>% mutate(age_w3 = as.numeric(CALCAGE3))
+summary(w3_sub$CALCAGE3)
+
+# Wave 4 — construct from birth date + interview date
+w4_sub <- w4_sub %>%
+  mutate(
+    IYEAR4_num  = as.numeric(str_extract(as.character(IYEAR4), "\\d{4}")),
+    H4OD1Y_num = as.numeric(str_extract(as.character(H4OD1Y), "\\d{4}")),
+    age_w4 = (IYEAR4_num - H4OD1Y_num))
+summary(w4_sub$age_w4)
+```
