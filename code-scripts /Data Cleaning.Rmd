@@ -923,3 +923,25 @@ w4_sub <- w4_sub %>%
     age_w4 = (IYEAR4_num - H4OD1Y_num))
 summary(w4_sub$age_w4)
 ```
+
+```{r}
+#Predictor composites
+#Right now you have individual items for protective factors, parent relationships, and personality, but no composite scores. For a growth model where these are time-invariant predictors of intercept/slope (most likely all measured at W1, since that's your baseline), you need single scores per construct
+
+# Protective factors (H1PR1-H1PR8, watch for H1PR6 reverse-coding —
+# "want to leave home" runs opposite to the other items)
+w1_sub <- w1_sub %>%
+  mutate(protective_factors = rowMeans(select(., H1PR1, H1PR2, H1PR3, H1PR4,
+                                                    H1PR5, H1PR6_r, H1PR7, H1PR8),
+                                        na.rm = TRUE))
+
+# Parent relationship/closeness — decide which sub-block you actually want
+# (closeness items H1WP9/10/13/14 are conceptually different from the
+# autonomy items H1WP1-8 and the joint-activity checklist items H1WP17/18 —
+# don't average all of them into one score without checking they load together)
+w1_sub <- w1_sub %>%
+  mutate(parent_closeness = rowMeans(select(., H1WP9, H1WP10, H1WP13, H1WP14,
+                                                  H1PF1, H1PF2, H1PF4, H1PF5,
+                                                  H1PF23, H1PF24, H1PF25),
+                                      na.rm = TRUE))
+```
