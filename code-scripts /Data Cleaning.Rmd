@@ -656,16 +656,6 @@ w4_sub <- w4_sub %>%
 # H4OD1Y, IYEAR4) confirmed clean — no action needed.
 ```
 
-Okay gonna try to merge the waves into one dataset
-
-```{r}
-
-combined <- w1_sub %>%
-  left_join(w2_sub, by = "AID") %>%
-  left_join(w3_sub, by = "AID") %>%
-  left_join(w4_sub, by = "AID") 
-```
-
 ```{r}
 levels(w1_sub$H1FS6)   # confirm: should show "(0) Never/rarely" as the FIRST level
 levels(w3_sub$H3SP9)   # confirm wave 3's labeling convention matches
@@ -1176,13 +1166,14 @@ saveRDS(combined, "combined_analysis_ready.rds")
 ```
 
 ```{r}
-<<<<<<< HEAD
 cor(combined$protective_factors, combined$parent_closeness, use = "pairwise.complete.obs")
 
 # Same thing with a significance test and confidence interval
 cor.test(combined$protective_factors, combined$parent_closeness)
 
 ```
+
+
 ```{r}
 # Clean up: drop the wrong "fix" and the diagnostic scratch variables,
 # keep only the correct version going forward
@@ -1247,10 +1238,12 @@ addhealth_design <- svydesign(
   data    = combined,
   nest    = TRUE
 )
-addhealth_design
+
 ```
 
-=======
+
+```{r}
+
 combined_long <- combined %>%
   
   select(
@@ -1289,6 +1282,4 @@ combined_long <- combined %>%
 View(combined_long)
 
 
-
 ```
->>>>>>> 4ca5c99b6fa666ad5202768771262c162f375cee
