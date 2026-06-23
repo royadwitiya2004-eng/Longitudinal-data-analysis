@@ -7,6 +7,7 @@ output: html_document
 library(haven)
 library(dplyr)
 library(tidyverse)
+library(tidyr)
 
 #load w1 to w4
 w1 <- load("data w1 to w4/21600-0001-Data copy.rda") # Wave I in-home
@@ -923,6 +924,7 @@ w4_sub <- w4_sub %>%
     age_w4 = (IYEAR4_num - H4OD1Y_num))
 summary(w4_sub$age_w4)
 ```
+
 ```{r fix-h1pr6}
 w1_sub <- w1_sub %>%
   mutate(across(c(H1PR1,H1PR2,H1PR3,H1PR4,H1PR5,H1PR6,H1PR7,H1PR8),
@@ -932,6 +934,7 @@ table(w1_sub$H1PR6, useNA = "always")
 
 w1_sub <- w1_sub %>% mutate(H1PR6_r = 6 - H1PR6)
 ```
+
 ```{r fix-cesd-w3}
 w3_sub <- w3_sub %>%
   mutate(cesd_w3 = rowSums(select(., H3SP5, H3SP6, H3SP7_r, H3SP8, H3SP9,
@@ -939,6 +942,7 @@ w3_sub <- w3_sub %>%
                             na.rm = FALSE))
 summary(w3_sub$cesd_w3)
 ```
+
 ```{r composite-closeness}
 close_items <- w1_sub %>%
   mutate(across(c(H1WP9, H1WP10, H1WP13, H1WP14,
@@ -974,6 +978,7 @@ summary(w1_sub$parent_closeness)
 # Protective factors (H1PR1-H1PR8, watch for H1PR6 reverse-coding —
 # "want to leave home" runs opposite to the other items)
 w1_sub <- w1_sub %>%
+  mutate(H1PR6_r = 6 - as.numeric(H1PR6)) %>%   # confirm actual scale max from codebook (looks like 1-5, so 6-x)
   mutate(protective_factors = rowMeans(select(., H1PR1, H1PR2, H1PR3, H1PR4,
                                                     H1PR5, H1PR6_r, H1PR7, H1PR8),
                                         na.rm = TRUE))
@@ -1009,7 +1014,6 @@ summary(w2_sub$cesd_w2_mean)
 summary(w3_sub$cesd_w3_mean)
 summary(w4_sub$cesd_w4_mean)
 ```
-
 
 ```{r composite-protective}
 prot_items <- w1_sub %>%
@@ -1106,6 +1110,11 @@ w4_keep <- w4_sub %>%
   select(AID, cesd_w4_mean, age_w4,
          extraversion, agreeableness, conscientiousness, neuroticism, openness,
          any_of(c("GSWGT4")))
+
+
+
+
+c("cesd_w1_mean", "age_w1", "protective_factors", "parent_closeness") %in% names(w1_sub)
 ```
 
 # ---------------------------------------------------------------------
@@ -1168,11 +1177,14 @@ colSums(is.na(select(combined,
   protective_factors, parent_closeness,
   extraversion, agreeableness, conscientiousness, neuroticism, openness)))
 
+View(combined)
+
 # Save analysis-ready dataset
 saveRDS(combined, "combined_analysis_ready.rds")
 ```
 
 ```{r}
+<<<<<<< HEAD
 cor(combined$protective_factors, combined$parent_closeness, use = "pairwise.complete.obs")
 
 # Same thing with a significance test and confidence interval
@@ -1246,3 +1258,45 @@ addhealth_design <- svydesign(
 addhealth_design
 ```
 
+=======
+combined_long <- combined %>%
+  
+  select(
+    AID, GSWGT4, CLUSTER2,
+    protective_factors,
+    parent_closeness,
+    BIO_SEX, PA12, PA55,
+    H1GI6A, H1GI6B, H1GI6C, H1GI6D, H1GI6E,
+    cesd_w1_mean, cesd_w2_mean, cesd_w3_mean, cesd_w4_mean,
+    age_w1, age_w2, age_w3, age_w4
+  ) %>%
+  
+  pivot_longer(
+    cols      = c(cesd_w1_mean, cesd_w2_mean, cesd_w3_mean, cesd_w4_mean),
+    names_to  = "wave",
+    values_to = "cesd_mean"
+  ) %>%
+  
+  mutate(
+    age = case_when(
+      wave == "cesd_w1_mean" ~ age_w1,
+      wave == "cesd_w2_mean" ~ age_w2,
+      wave == "cesd_w3_mean" ~ age_w3,
+      wave == "cesd_w4_mean" ~ age_w4
+    ),
+    wave_num = case_when(
+      wave == "cesd_w1_mean" ~ 1,
+      wave == "cesd_w2_mean" ~ 2,
+      wave == "cesd_w3_mean" ~ 3,
+      wave == "cesd_w4_mean" ~ 4
+    )
+  ) %>%
+  
+  select(-age_w1, -age_w2, -age_w3, -age_w4, -wave)
+
+View(combined_long)
+
+
+
+```
+>>>>>>> 4ca5c99b6fa666ad5202768771262c162f375cee
