@@ -1238,6 +1238,7 @@ addhealth_design <- svydesign(
   data    = combined,
   nest    = TRUE
 )
+View(addhealth_design)
 
 ```
 
