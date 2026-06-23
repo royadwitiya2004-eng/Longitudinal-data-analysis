@@ -931,6 +931,7 @@ summary(w4_sub$age_w4)
 # Protective factors (H1PR1-H1PR8, watch for H1PR6 reverse-coding —
 # "want to leave home" runs opposite to the other items)
 w1_sub <- w1_sub %>%
+  mutate(H1PR6_r = 6 - as.numeric(H1PR6)) %>%   # confirm actual scale max from codebook (looks like 1-5, so 6-x)
   mutate(protective_factors = rowMeans(select(., H1PR1, H1PR2, H1PR3, H1PR4,
                                                     H1PR5, H1PR6_r, H1PR7, H1PR8),
                                         na.rm = TRUE))
