@@ -14,3 +14,46 @@ library(tableone)    # descriptive tables — install if needed: install.package
 library(psych)       # describe() for detailed descriptives
 ```
 
+```{r}
+
+# Row counts at each wave
+
+cat("Wave 1 rows:", nrow(w1_sub), "\n")
+cat("Wave 2 rows:", nrow(w2_sub), "\n")
+cat("Wave 3 rows:", nrow(w3_sub), "\n")
+cat("Wave 4 rows:", nrow(w4_sub), "\n")
+
+# How many respondents have data at ALL four waves?
+complete_4_waves <- combined %>%
+  filter(!is.na(cesd_w1_mean) &
+         !is.na(cesd_w2_mean) &
+         !is.na(cesd_w3_mean) &
+         !is.na(cesd_w4_mean))
+cat("\nRespondents with CES-D at all 4 waves:", nrow(complete_4_waves), "\n")
+cat("As % of Wave I sample:", round(nrow(complete_4_waves) / nrow(w1_sub) * 100, 1), "%\n")
+```
+
+```{r attrition rates} 
+# Create attrition indicators in combined dataset
+combined <- combined %>%
+  mutate(
+    present_w1 = !is.na(cesd_w1_mean),
+    present_w2 = !is.na(cesd_w2_mean),
+    present_w3 = !is.na(cesd_w3_mean),
+    present_w4 = !is.na(cesd_w4_mean),
+    # Count how many waves each person contributed CES-D data at
+    n_waves_cesd = present_w1 + present_w2 + present_w3 + present_w4
+  )
+
+# Compute wave participation count on the fly without storing it
+n_waves <- rowSums(!is.na(combined[c("cesd_w1_mean", "cesd_w2_mean",
+                                      "cesd_w3_mean", "cesd_w4_mean")]))
+
+cat("Distribution of CES-D wave participation:\n")
+table(n_waves)
+
+round(prop.table(table(n_waves)) * 100, 1) #accounting for the NAs we cut
+#Missingness in the analytic sample was minimal: 98.8% of respondents (n = 3,300 out of 3,342) provided CES-D depression data at all four waves, with only 42 participants missing data at one or more waves. Given this exceptionally low rate of incomplete data, attrition is unlikely to substantially bias trajectory estimates, though Full Information Maximum Likelihood (FIML) will be used in all models to retain partial cases and account for the missing at random assumption.
+
+```
+

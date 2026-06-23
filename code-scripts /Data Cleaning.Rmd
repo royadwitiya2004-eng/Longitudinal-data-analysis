@@ -866,7 +866,7 @@ summary(w2_sub$cesd_w2)#***
 
 w3_sub <- w3_sub %>%
   mutate(cesd_w3 = rowSums(select(., H3SP5, H3SP6, H3SP7_r, H3SP8, H3SP9,
-                                       H3SP10, H3SP11, H3SP12, H3SP13),
+                                       H3SP10, H3SP11_r, H3SP12, H3SP13),
                                 na.rm = FALSE))
 summary(w3_sub$cesd_w3)
 
@@ -975,7 +975,7 @@ summary(w1_sub$parent_closeness)
 #Predictor composites
 #Right now you have individual items for protective factors, parent relationships, and personality, but no composite scores. For a growth model where these are time-invariant predictors of intercept/slope (most likely all measured at W1, since that's your baseline), you need single scores per construct
 
-# Protective factors (H1PR1-H1PR8, watch for H1PR6 reverse-coding —
+# Protective factors/social support (H1PR1-H1PR8, watch for H1PR6 reverse-coding —
 # "want to leave home" runs opposite to the other items)
 w1_sub <- w1_sub %>%
   mutate(H1PR6_r = 6 - as.numeric(H1PR6)) %>%   # confirm actual scale max from codebook (looks like 1-5, so 6-x)
@@ -992,14 +992,6 @@ w1_sub <- w1_sub %>%
                                                   H1PF1, H1PF2, H1PF4, H1PF5,
                                                   H1PF23, H1PF24, H1PF25),
                                       na.rm = TRUE))
-```
-
-```{r fix-cesd-w3}
-w3_sub <- w3_sub %>%
-  mutate(cesd_w3 = rowSums(select(., H3SP5, H3SP6, H3SP7_r, H3SP8, H3SP9,
-                                       H3SP10, H3SP11_r, H3SP12, H3SP13),
-                            na.rm = FALSE))
-summary(w3_sub$cesd_w3)
 ```
 
 ```{r fix-cesd-means}
