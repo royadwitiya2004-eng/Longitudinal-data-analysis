@@ -7,6 +7,7 @@ output: html_document
 library(haven)
 library(dplyr)
 library(tidyverse)
+library(tidyr)
 
 #load w1 to w4
 w1 <- load("data w1 to w4/21600-0001-Data copy.rda") # Wave I in-home
@@ -1175,11 +1176,50 @@ colSums(is.na(select(combined,
   protective_factors, parent_closeness,
   extraversion, agreeableness, conscientiousness, neuroticism, openness)))
 
+View(combined)
+
 # Save analysis-ready dataset
 saveRDS(combined, "combined_analysis_ready.rds")
 ```
 
 ```{r}
+combined_long <- combined %>%
+  
+  select(
+    AID, GSWGT4, CLUSTER2,
+    protective_factors,
+    parent_closeness,
+    BIO_SEX, PA12, PA55,
+    H1GI6A, H1GI6B, H1GI6C, H1GI6D, H1GI6E,
+    cesd_w1_mean, cesd_w2_mean, cesd_w3_mean, cesd_w4_mean,
+    age_w1, age_w2, age_w3, age_w4
+  ) %>%
+  
+  pivot_longer(
+    cols      = c(cesd_w1_mean, cesd_w2_mean, cesd_w3_mean, cesd_w4_mean),
+    names_to  = "wave",
+    values_to = "cesd_mean"
+  ) %>%
+  
+  mutate(
+    age = case_when(
+      wave == "cesd_w1_mean" ~ age_w1,
+      wave == "cesd_w2_mean" ~ age_w2,
+      wave == "cesd_w3_mean" ~ age_w3,
+      wave == "cesd_w4_mean" ~ age_w4
+    ),
+    wave_num = case_when(
+      wave == "cesd_w1_mean" ~ 1,
+      wave == "cesd_w2_mean" ~ 2,
+      wave == "cesd_w3_mean" ~ 3,
+      wave == "cesd_w4_mean" ~ 4
+    )
+  ) %>%
+  
+  select(-age_w1, -age_w2, -age_w3, -age_w4, -wave)
+
+View(combined_long)
+
 
 
 ```

@@ -3,3 +3,14 @@ title: "Data Exploration"
 output: html_document
 ---
 
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+install.packages("naniar")
+library(naniar)      # missingness visualisation — install if needed: install.packages("naniar")
+install.packages("tableone")
+library(tableone)    # descriptive tables — install if needed: install.packages("tableone")
+library(psych)       # describe() for detailed descriptives
+```
+
