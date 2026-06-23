@@ -923,6 +923,7 @@ w4_sub <- w4_sub %>%
     age_w4 = (IYEAR4_num - H4OD1Y_num))
 summary(w4_sub$age_w4)
 ```
+
 ```{r fix-h1pr6}
 w1_sub <- w1_sub %>%
   mutate(across(c(H1PR1,H1PR2,H1PR3,H1PR4,H1PR5,H1PR6,H1PR7,H1PR8),
@@ -932,6 +933,7 @@ table(w1_sub$H1PR6, useNA = "always")
 
 w1_sub <- w1_sub %>% mutate(H1PR6_r = 6 - H1PR6)
 ```
+
 ```{r fix-cesd-w3}
 w3_sub <- w3_sub %>%
   mutate(cesd_w3 = rowSums(select(., H3SP5, H3SP6, H3SP7_r, H3SP8, H3SP9,
@@ -939,6 +941,7 @@ w3_sub <- w3_sub %>%
                             na.rm = FALSE))
 summary(w3_sub$cesd_w3)
 ```
+
 ```{r composite-closeness}
 close_items <- w1_sub %>%
   mutate(across(c(H1WP9, H1WP10, H1WP13, H1WP14,
@@ -1010,7 +1013,6 @@ summary(w2_sub$cesd_w2_mean)
 summary(w3_sub$cesd_w3_mean)
 summary(w4_sub$cesd_w4_mean)
 ```
-
 
 ```{r composite-protective}
 prot_items <- w1_sub %>%
@@ -1107,6 +1109,11 @@ w4_keep <- w4_sub %>%
   select(AID, cesd_w4_mean, age_w4,
          extraversion, agreeableness, conscientiousness, neuroticism, openness,
          any_of(c("GSWGT4")))
+
+
+
+
+c("cesd_w1_mean", "age_w1", "protective_factors", "parent_closeness") %in% names(w1_sub)
 ```
 
 # ---------------------------------------------------------------------
@@ -1172,3 +1179,7 @@ colSums(is.na(select(combined,
 saveRDS(combined, "combined_analysis_ready.rds")
 ```
 
+```{r}
+
+
+```
