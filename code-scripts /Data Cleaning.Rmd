@@ -923,25 +923,38 @@ w4_sub <- w4_sub %>%
     age_w4 = (IYEAR4_num - H4OD1Y_num))
 summary(w4_sub$age_w4)
 ```
-
-```{r}
-#Predictor composites
-#Right now you have individual items for protective factors, parent relationships, and personality, but no composite scores. For a growth model where these are time-invariant predictors of intercept/slope (most likely all measured at W1, since that's your baseline), you need single scores per construct
-
-# Protective factors (H1PR1-H1PR8, watch for H1PR6 reverse-coding —
-# "want to leave home" runs opposite to the other items)
+```{r fix-h1pr6}
 w1_sub <- w1_sub %>%
-  mutate(protective_factors = rowMeans(select(., H1PR1, H1PR2, H1PR3, H1PR4,
-                                                    H1PR5, H1PR6_r, H1PR7, H1PR8),
-                                        na.rm = TRUE))
+  mutate(across(c(H1PR1,H1PR2,H1PR3,H1PR4,H1PR5,H1PR6,H1PR7,H1PR8),
+                ~ as.numeric(.)))   # ensure numeric; harmless if already numeric
 
-# Parent relationship/closeness — decide which sub-block you actually want
-# (closeness items H1WP9/10/13/14 are conceptually different from the
-# autonomy items H1WP1-8 and the joint-activity checklist items H1WP17/18 —
-# don't average all of them into one score without checking they load together)
-w1_sub <- w1_sub %>%
-  mutate(parent_closeness = rowMeans(select(., H1WP9, H1WP10, H1WP13, H1WP14,
-                                                  H1PF1, H1PF2, H1PF4, H1PF5,
-                                                  H1PF23, H1PF24, H1PF25),
-                                      na.rm = TRUE))
+table(w1_sub$H1PR6, useNA = "always")
+
+w1_sub <- w1_sub %>% mutate(H1PR6_r = 6 - H1PR6)
 ```
+```{r fix-cesd-w3}
+w3_sub <- w3_sub %>%
+  mutate(cesd_w3 = rowSums(select(., H3SP5, H3SP6, H3SP7_r, H3SP8, H3SP9,
+                                       H3SP10, H3SP11_r, H3SP12, H3SP13),
+                            na.rm = FALSE))
+summary(w3_sub$cesd_w3)
+```
+```{r composite-closeness}
+close_items <- w1_sub %>%
+  mutate(across(c(H1WP9, H1WP10, H1WP13, H1WP14,
+                  H1PF1, H1PF2, H1PF4, H1PF5,
+                  H1PF23, H1PF24, H1PF25), ~ as.numeric(.))) %>%
+  select(H1WP9, H1WP10, H1WP13, H1WP14,
+         H1PF1, H1PF2, H1PF4, H1PF5,
+         H1PF23, H1PF24, H1PF25)
+
+# alpha with check.keys flags any item running the wrong direction
+close_alpha <- psych::alpha(close_items, check.keys = TRUE)
+close_alpha$total$raw_alpha
+# close_alpha                       # inspect: if check.keys reversed items,
+                                    # decide whether that's substantively right
+
+w1_sub <- w1_sub %>%
+  mutate(across(c(H1WP9, H1WP10, H1WP13, H1WP14,
+                  H1PF1, H1PF2, H1PF4, H1PF5,
+                  H
