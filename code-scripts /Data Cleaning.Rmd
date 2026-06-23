@@ -923,6 +923,49 @@ w4_sub <- w4_sub %>%
     age_w4 = (IYEAR4_num - H4OD1Y_num))
 summary(w4_sub$age_w4)
 ```
+```{r fix-h1pr6}
+w1_sub <- w1_sub %>%
+  mutate(across(c(H1PR1,H1PR2,H1PR3,H1PR4,H1PR5,H1PR6,H1PR7,H1PR8),
+                ~ as.numeric(.)))   # ensure numeric; harmless if already numeric
+
+table(w1_sub$H1PR6, useNA = "always")
+
+w1_sub <- w1_sub %>% mutate(H1PR6_r = 6 - H1PR6)
+```
+```{r fix-cesd-w3}
+w3_sub <- w3_sub %>%
+  mutate(cesd_w3 = rowSums(select(., H3SP5, H3SP6, H3SP7_r, H3SP8, H3SP9,
+                                       H3SP10, H3SP11_r, H3SP12, H3SP13),
+                            na.rm = FALSE))
+summary(w3_sub$cesd_w3)
+```
+```{r composite-closeness}
+close_items <- w1_sub %>%
+  mutate(across(c(H1WP9, H1WP10, H1WP13, H1WP14,
+                  H1PF1, H1PF2, H1PF4, H1PF5,
+                  H1PF23, H1PF24, H1PF25), ~ as.numeric(.))) %>%
+  select(H1WP9, H1WP10, H1WP13, H1WP14,
+         H1PF1, H1PF2, H1PF4, H1PF5,
+         H1PF23, H1PF24, H1PF25)
+
+# alpha with check.keys flags any item running the wrong direction
+close_alpha <- psych::alpha(close_items, check.keys = TRUE)
+close_alpha$total$raw_alpha
+# close_alpha                       # inspect: if check.keys reversed items,
+                                    # decide whether that's substantively right
+
+w1_sub <- w1_sub %>%
+  mutate(across(c(H1WP9, H1WP10, H1WP13, H1WP14,
+                  H1PF1, H1PF2, H1PF4, H1PF5,
+                  H1PF23, H1PF24, H1PF25), ~ as.numeric(.))) %>%
+  mutate(parent_closeness = rowMeans(
+    select(., H1WP9, H1WP10, H1WP13, H1WP14,
+               H1PF1, H1PF2, H1PF4, H1PF5,
+               H1PF23, H1PF24, H1PF25),
+    na.rm = TRUE))
+
+summary(w1_sub$parent_closeness)
+```
 
 ```{r}
 #Predictor composites
@@ -946,3 +989,186 @@ w1_sub <- w1_sub %>%
                                                   H1PF23, H1PF24, H1PF25),
                                       na.rm = TRUE))
 ```
+
+```{r fix-cesd-w3}
+w3_sub <- w3_sub %>%
+  mutate(cesd_w3 = rowSums(select(., H3SP5, H3SP6, H3SP7_r, H3SP8, H3SP9,
+                                       H3SP10, H3SP11_r, H3SP12, H3SP13),
+                            na.rm = FALSE))
+summary(w3_sub$cesd_w3)
+```
+
+```{r fix-cesd-means}
+w1_sub <- w1_sub %>% mutate(cesd_w1_mean = cesd_w1 / 18)
+w2_sub <- w2_sub %>% mutate(cesd_w2_mean = cesd_w2 / 18)
+w3_sub <- w3_sub %>% mutate(cesd_w3_mean = cesd_w3 / 9)
+w4_sub <- w4_sub %>% mutate(cesd_w4_mean = cesd_w4 / 9)
+
+# check: all four should sit on roughly 0-3
+summary(w1_sub$cesd_w1_mean)
+summary(w2_sub$cesd_w2_mean)
+summary(w3_sub$cesd_w3_mean)
+summary(w4_sub$cesd_w4_mean)
+```
+
+
+```{r composite-protective}
+prot_items <- w1_sub %>%
+  select(H1PR1, H1PR2, H1PR3, H1PR4, H1PR5, H1PR6_r, H1PR7, H1PR8)
+
+prot_alpha <- psych::alpha(prot_items)
+prot_alpha$total$raw_alpha          # report this value
+# prot_alpha                        # uncomment for item-level / alpha-if-dropped
+
+w1_sub <- w1_sub %>%
+  mutate(protective_factors = rowMeans(prot_items, na.rm = TRUE))
+
+summary(w1_sub$protective_factors)
+```
+
+```{r personality-scale-check}
+# Confirm the response scale (expect 1-5) on a few items before reversing
+table(w4_sub$H4PE1,  useNA = "always")
+table(w4_sub$H4PE9,  useNA = "always")
+table(w4_sub$H4PE29, useNA = "always")
+```
+
+```{r personality-reverse}
+# Ensure numeric
+ipip_items <- c("H4PE1","H4PE2","H4PE4","H4PE5",
+                "H4PE9","H4PE10","H4PE11","H4PE12","H4PE13",
+                "H4PE17","H4PE18","H4PE19","H4PE20","H4PE21",
+                "H4PE25","H4PE26","H4PE27","H4PE28","H4PE29")
+w4_sub <- w4_sub %>% mutate(across(all_of(ipip_items), ~ as.numeric(.)))
+
+# Reverse-keyed items (6 - x on a 1-5 scale)
+w4_sub <- w4_sub %>%
+  mutate(
+    H4PE9_r  = 6 - H4PE9,    # Extraversion (R)
+    H4PE25_r = 6 - H4PE25,   # Extraversion (R)
+    H4PE10_r = 6 - H4PE10,   # Agreeableness (R)
+    H4PE26_r = 6 - H4PE26,   # Agreeableness (R)
+    H4PE11_r = 6 - H4PE11,   # Conscientiousness (R)
+    H4PE27_r = 6 - H4PE27,   # Conscientiousness (R)
+    H4PE12_r = 6 - H4PE12,   # Neuroticism (R)
+    H4PE28_r = 6 - H4PE28,   # Neuroticism (R)
+    H4PE13_r = 6 - H4PE13,   # Openness (R)
+    H4PE21_r = 6 - H4PE21,   # Openness (R)
+    H4PE29_r = 6 - H4PE29    # Openness (R)
+  )
+```
+
+```{r personality-subscales}
+# Score each trait as the mean of its 4 items (C uses 3 confirmed items).
+w4_sub <- w4_sub %>%
+  mutate(
+    extraversion      = rowMeans(select(., H4PE1, H4PE9_r,  H4PE17, H4PE25_r), na.rm = TRUE),
+    agreeableness     = rowMeans(select(., H4PE2, H4PE10_r, H4PE18, H4PE26_r), na.rm = TRUE),
+    conscientiousness = rowMeans(select(., H4PE11_r, H4PE19, H4PE27_r),        na.rm = TRUE),
+    neuroticism       = rowMeans(select(., H4PE4, H4PE12_r, H4PE20, H4PE28_r), na.rm = TRUE),
+    openness          = rowMeans(select(., H4PE5, H4PE13_r, H4PE21_r, H4PE29_r), na.rm = TRUE)
+  )
+
+psych::alpha(select(w4_sub, H4PE1, H4PE9_r,  H4PE17, H4PE25_r), check.keys = TRUE)$total$raw_alpha
+psych::alpha(select(w4_sub, H4PE2, H4PE10_r, H4PE18, H4PE26_r), check.keys = TRUE)$total$raw_alpha
+psych::alpha(select(w4_sub, H4PE11_r, H4PE19, H4PE27_r),        check.keys = TRUE)$total$raw_alpha
+psych::alpha(select(w4_sub, H4PE4, H4PE12_r, H4PE20, H4PE28_r), check.keys = TRUE)$total$raw_alpha
+psych::alpha(select(w4_sub, H4PE5, H4PE13_r, H4PE21_r, H4PE29_r), check.keys = TRUE)$total$raw_alpha
+
+summary(select(w4_sub, extraversion, agreeableness, conscientiousness, neuroticism, openness))
+```
+
+```{r age-check}
+lapply(list(w1=w1_sub$age_w1, w2=w2_sub$age_w2,
+            w3=w3_sub$age_w3, w4=w4_sub$age_w4), summary)
+```
+
+```{r trim-and-region}
+# If REGION isn't already in w1_sub, merge it from the W1 weights object.
+# (Adjust object name if different in your environment.)
+if (!"REGION" %in% names(w1_sub) && exists("w1_weights") && "REGION" %in% names(w1_weights)) {
+  w1_sub <- w1_sub %>% left_join(select(w1_weights, AID, REGION), by = "AID")
+}
+
+w1_keep <- w1_sub %>%
+  select(AID, cesd_w1_mean, age_w1,
+         protective_factors, parent_closeness,
+         any_of(c("GSWGT1","CLUSTER2","REGION","BIO_SEX",
+                  "H1GI6A","H1GI6B","H1GI6C","H1GI6D","H1GI6E","H1GI5F",
+                  "PA12","PA55")))
+
+w2_keep <- w2_sub %>%
+  select(AID, cesd_w2_mean, age_w2, any_of(c("GSWGT2")))
+
+w3_keep <- w3_sub %>%
+  select(AID, cesd_w3_mean, age_w3, any_of(c("GSWGT3")))
+
+w4_keep <- w4_sub %>%
+  select(AID, cesd_w4_mean, age_w4,
+         extraversion, agreeableness, conscientiousness, neuroticism, openness,
+         any_of(c("GSWGT4")))
+```
+
+# ---------------------------------------------------------------------
+
+# MERGE the trimmed waves. Now there's exactly one CLUSTER2, one REGION,
+
+# and one of each weight --- no .x/.y duplication to untangle.
+
+# ---------------------------------------------------------------------
+
+```{r merge}
+combined <- w1_keep %>%
+  left_join(w2_keep, by = "AID") %>%
+  left_join(w3_keep, by = "AID") %>%
+  left_join(w4_keep, by = "AID")
+
+dim(combined)
+names(combined)
+```
+
+```{r restrict}
+combined <- combined %>% filter(!is.na(GSWGT4))
+nrow(combined)
+```
+
+```{r svydesign}
+library(survey)
+options(survey.lonely.psu = "adjust")
+
+addhealth_design <- svydesign(
+  id      = ~CLUSTER2,
+  weights = ~GSWGT4,
+  data    = combined,
+  nest    = TRUE
+)
+addhealth_design
+```
+
+# ---------------------------------------------------------------------
+
+# FINAL READINESS CHECK. After this, you're clear to fit the LGC.
+
+# ---------------------------------------------------------------------
+
+```{r final-check}
+# The four repeated outcomes the growth model will use:
+summary(select(combined, cesd_w1_mean, cesd_w2_mean, cesd_w3_mean, cesd_w4_mean))
+
+# Time-invariant predictors:
+summary(select(combined, protective_factors, parent_closeness))
+
+# W4 personality mediators:
+summary(select(combined, extraversion, agreeableness,
+                          conscientiousness, neuroticism, openness))
+
+# Missingness overview per analysis variable
+colSums(is.na(select(combined,
+  cesd_w1_mean, cesd_w2_mean, cesd_w3_mean, cesd_w4_mean,
+  protective_factors, parent_closeness,
+  extraversion, agreeableness, conscientiousness, neuroticism, openness)))
+
+# Save analysis-ready dataset
+saveRDS(combined, "combined_analysis_ready.rds")
+```
+
