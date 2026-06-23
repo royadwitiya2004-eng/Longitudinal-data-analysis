@@ -1132,6 +1132,7 @@ nrow(combined)
 ```
 
 ```{r svydesign}
+install.packages("survey")
 library(survey)
 options(survey.lonely.psu = "adjust")
 
@@ -1169,5 +1170,79 @@ colSums(is.na(select(combined,
 
 # Save analysis-ready dataset
 saveRDS(combined, "combined_analysis_ready.rds")
+```
+
+```{r}
+cor(combined$protective_factors, combined$parent_closeness, use = "pairwise.complete.obs")
+
+# Same thing with a significance test and confidence interval
+cor.test(combined$protective_factors, combined$parent_closeness)
+
+```
+```{r}
+# Clean up: drop the wrong "fix" and the diagnostic scratch variables,
+# keep only the correct version going forward
+
+w1_sub <- w1_sub %>%
+  mutate(
+    H1PF1_r  = 6 - H1PF1,
+    H1PF2_r  = 6 - H1PF2,
+    H1PF4_r  = 6 - H1PF4,
+    H1PF5_r  = 6 - H1PF5,
+    H1PF23_r = 6 - H1PF23,
+    H1PF24_r = 6 - H1PF24,
+    H1PF25_r = 6 - H1PF25
+  )
+
+w1_sub <- w1_sub %>%
+  mutate(parent_closeness = rowMeans(
+    select(., H1WP9, H1WP10, H1WP13, H1WP14,
+              H1PF1_r, H1PF2_r, H1PF4_r, H1PF5_r,
+              H1PF23_r, H1PF24_r, H1PF25_r),
+    na.rm = TRUE
+  ))
+
+# Confirm alpha is solid with the correct direction
+psych::alpha(select(w1_sub, H1WP9, H1WP10, H1WP13, H1WP14,
+                     H1PF1_r, H1PF2_r, H1PF4_r, H1PF5_r,
+                     H1PF23_r, H1PF24_r, H1PF25_r))
+
+# Confirm the depression correlation lands where expected
+cor(w1_sub$parent_closeness, w1_sub$cesd_w1_mean, use = "pairwise.complete.obs")
+
+# Clean up scratch variables you no longer need
+w1
+```
+```{r}
+w1_keep <- w1_sub %>%
+  select(AID, cesd_w1_mean, age_w1,
+         protective_factors, parent_closeness,
+         any_of(c("GSWGT1","CLUSTER2","REGION","BIO_SEX",
+                  "H1GI6A","H1GI6B","H1GI6C","H1GI6D","H1GI6E","H1GI5F",
+                  "PA12","PA55")))
+
+combined <- w1_keep %>%
+  left_join(w2_keep, by = "AID") %>%
+  left_join(w3_keep, by = "AID") %>%
+  left_join(w4_keep, by = "AID")
+
+combined <- combined %>% filter(!is.na(GSWGT4))
+nrow(combined)
+
+# Final check: protective_factors vs. corrected parent_closeness
+cor(combined$protective_factors, combined$parent_closeness, use = "pairwise.complete.obs")
+```
+```{r}
+# Rebuild the svydesign object with the corrected combined data
+library(survey)
+options(survey.lonely.psu = "adjust")
+
+addhealth_design <- svydesign(
+  id      = ~CLUSTER2,
+  weights = ~GSWGT4,
+  data    = combined,
+  nest    = TRUE
+)
+addhealth_design
 ```
 
