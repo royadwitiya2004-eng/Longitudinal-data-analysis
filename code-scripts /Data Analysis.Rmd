@@ -1,0 +1,106 @@
+---
+title: "Data Analysis"
+output: html_document
+---
+
+Hypothesis 1: Individuals with higher levels of perceived social support and parental closeness at Wave 1 will show a significantly flatter rate of increase in depressive symptoms across Waves I–IV, compared to those with lower perceived parental closeness and social support.
+Analysis: Latent Growth Curve Analysis 
+```{r}
+library(lavaan)
+
+#starting with a simple model structure and gradually adding complexity
+#Have to use age based loadings instead of by wave because the waves in our data set are unevenely distributed (e.g., w1-w2 = 1 year, w2-w3 = 6 years, w3 to w4 = 6-7 years)
+
+# Compute mean loadings from your data
+mean_age_w1 <- mean(combined$age_w1, na.rm = TRUE)
+t2_loading <- mean(combined$age_w2, na.rm = TRUE) - mean_age_w1
+t3_loading <- mean(combined$age_w3, na.rm = TRUE) - mean_age_w1
+t4_loading <- mean(combined$age_w4, na.rm = TRUE) - mean_age_w1
+#getting weights of each time depending on mean age and differnece from W1
+
+print(c(t2_loading, t3_loading, t4_loading))
+
+#model with just intercept and slope
+model_baseline <- '
+  i =~ 1*cesd_w1_mean + 1*cesd_w2_mean + 1*cesd_w3_mean + 1*cesd_w4_mean
+  s =~ 0*cesd_w1_mean + 0.592*cesd_w2_mean + 
+                        5.788*cesd_w3_mean + 
+                        12.968*cesd_w4_mean
+'
+```
+
+```{r}
+fit_baseline <- growth(model_baseline,
+                   data    = combined,
+                   missing = "FIML")
+
+summary(fit_baseline, fit.measures = TRUE, standardized = TRUE)
+#sig intercept: variation in indiviudal depression levels
+#sig slope: significant individual differences in trajectories of depression across time
+#Intercept-Slope Covariance: 
+
+
+
+```
+```{r}
+#See if protective factors + parental closeness predict difference in trajectories of depression 
+
+model_conditional <- '
+  i =~ 1*cesd_w1_mean + 1*cesd_w2_mean + 1*cesd_w3_mean + 1*cesd_w4_mean
+  s =~ 0*cesd_w1_mean + 0.592*cesd_w2_mean + 
+                        5.788*cesd_w3_mean + 
+                        12.968*cesd_w4_mean
+
+  # Protective factors predicting intercept and slope
+  i ~ parent_closeness + protective_factors
+  s ~ parent_closeness + protective_factors
+'
+
+fit_conditional <- growth(model_conditional, data = combined, missing = "FIML")
+summary(fit_conditional, fit.measures = TRUE, standardized = TRUE)
+#Intercept Paths — Both Significant: Both protective factors significantly predict lower baseline depression at age 15. The effect of perceived social support (protective_factors) is notably stronger (β = -0.396) than parent closeness (β = -0.167). Higher protective factors at wave 1 = lower starting point on the CES-D.
+
+
+#Slope Paths — Your H1 Test: Both are significant but the direction is positive, which is counterintuitive and needs careful interpretation. This does not mean protective factors worsen trajectories. Remember the mean slope was negative (-0.002) — depression generally decreases over time. A positive coefficient on the slope means protective factors are associated with a less steep decrease, not an increase. This is actually a classic fan-spread interaction with the intercept — people with more protective factors start lower (intercept effect) and therefore have less room to decrease further. The residual intercept-slope covariance (-.285, p < .001) confirms this: people who start higher decrease more steeply.
+
+
+
+```
+
+
+```{r}
+
+model_h1_final <- '
+  i =~ 1*cesd_w1_mean + 1*cesd_w2_mean + 1*cesd_w3_mean + 1*cesd_w4_mean
+  s =~ 0*cesd_w1_mean + 0.592*cesd_w2_mean + 
+                        5.788*cesd_w3_mean + 
+                        12.968*cesd_w4_mean
+
+  # Protective factors predicting intercept and slope
+  i ~ parent_closeness + protective_factors
+  s ~ parent_closeness + protective_factors
+
+  # Covariates
+  i ~ BIO_SEX  + PA55
+  s ~ BIO_SEX  + PA55
+'
+
+#PA55 = parental income at wave 1
+#PA12 = parent's education level
+
+fit_model_h1_final <- growth(model_h1_final, data = combined, missing = "FIML")
+summary(fit_model_h1_final, fit.measures = TRUE, standardized = TRUE)
+
+#Parent closeness and perceived social support both significantly predict lower baseline depression at age 15, with moderate to large effects
+#Both protective factors significantly predict the slope even after controlling for sex and PA55 (income w1)
+# The positive slope direction -> those with more protective factors start lower and converge toward the sample mean over time, rather than showing steeper declines
+#Covariates do not explain away the protective factor effects — the paths remain stable from the conditional to the final model, suggesting robust associations
+```
+
+```{r}
+#Compare models
+
+
+anova(fit_baseline, fit_conditional, fit_model_h1_final)
+```
+
