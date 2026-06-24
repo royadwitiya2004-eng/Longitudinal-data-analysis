@@ -1,0 +1,13 @@
+---
+title: "Data Analysis"
+output: html_document
+---
+
+Hypothesis 1: Individuals with higher levels of perceived social support and parental closeness at Wave 1 will show a significantly flatter rate of increase in depressive symptoms across Waves I–IV, compared to those with lower perceived parental closeness and social support.
+Analysis: Latent Growth Curve Analysis 
+```{r}
+
+
+
+```
+
