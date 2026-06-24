@@ -71,25 +71,36 @@ summary(fit_conditional, fit.measures = TRUE, standardized = TRUE)
 ```{r}
 
 model_h1_final <- '
-  # Intercept factor: all loadings fixed to 1
-  i =~ 1*cesd_w1 + 1*cesd_w2 + 1*cesd_w3 + 1*cesd_w4
+  i =~ 1*cesd_w1_mean + 1*cesd_w2_mean + 1*cesd_w3_mean + 1*cesd_w4_mean
+  s =~ 0*cesd_w1_mean + 0.592*cesd_w2_mean + 
+                        5.788*cesd_w3_mean + 
+                        12.968*cesd_w4_mean
 
-  # Slope factor: loadings = mean-centred age at each wave
-  s =~ 0*cesd_w1 + 1.2*cesd_w2 + 7.1*cesd_w3 + 14.3*cesd_w4
+  # Protective factors predicting intercept and slope
+  i ~ parent_closeness + protective_factors
+  s ~ parent_closeness + protective_factors
 
-  # Effects of protective factors on growth factors (your H1)
-  i ~ parent_closeness + social_support
-  s ~ parent_closeness + social_support
-
-  # Covariates (e.g., sex, race, SES at baseline)
-  i ~ sex + race + ses_w1
-  s =~ 0*cesd_w1 + data.age_w2_centred*cesd_w2 + 
-                 data.age_w3_centred*cesd_w3 + 
-                 data.age_w4_centred*cesd_w4
+  # Covariates
+  i ~ BIO_SEX  + PA55
+  s ~ BIO_SEX  + PA55
 '
+
+#PA55 = parental income at wave 1
+#PA12 = parent's education level
 
 fit_model_h1_final <- growth(model_h1_final, data = combined, missing = "FIML")
 summary(fit_model_h1_final, fit.measures = TRUE, standardized = TRUE)
 
+#Parent closeness and perceived social support both significantly predict lower baseline depression at age 15, with moderate to large effects
+#Both protective factors significantly predict the slope even after controlling for sex and PA55 (income w1)
+# The positive slope direction -> those with more protective factors start lower and converge toward the sample mean over time, rather than showing steeper declines
+#Covariates do not explain away the protective factor effects — the paths remain stable from the conditional to the final model, suggesting robust associations
+```
+
+```{r}
+#Compare models
+
+
+anova(fit_baseline, fit_conditional, fit_model_h1_final)
 ```
 
