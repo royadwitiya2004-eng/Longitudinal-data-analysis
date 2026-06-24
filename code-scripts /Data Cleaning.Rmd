@@ -1176,7 +1176,6 @@ saveRDS(combined, "combined_analysis_ready.rds")
 ```
 
 ```{r}
-<<<<<<< HEAD
 cor(combined$protective_factors, combined$parent_closeness, use = "pairwise.complete.obs")
 
 # Same thing with a significance test and confidence interval
@@ -1290,5 +1289,3 @@ View(combined_long)
 
 
 
-```
->>>>>>> 4ca5c99b6fa666ad5202768771262c162f375cee
