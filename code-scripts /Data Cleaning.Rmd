@@ -1209,6 +1209,7 @@ cor(w1_sub$parent_closeness, w1_sub$cesd_w1_mean, use = "pairwise.complete.obs")
 w1
 ```
 ```{r}
+
 w1_keep <- w1_sub %>%
   select(AID, cesd_w1_mean, age_w1,
          protective_factors, parent_closeness,
@@ -1219,14 +1220,24 @@ w1_keep <- w1_sub %>%
 combined <- w1_keep %>%
   left_join(w2_keep, by = "AID") %>%
   left_join(w3_keep, by = "AID") %>%
-  left_join(w4_keep, by = "AID")
+  left_join(w4_keep, by = "AID") %>%
+  mutate(                              # ← after all joins
+    age_w1_centred = age_w1 - 15,
+    age_w2_centred = age_w2 - 15,
+    age_w3_centred = age_w3 - 15,
+    age_w4_centred = age_w4 - 15
+  )
 
-combined <- combined %>% filter(!is.na(GSWGT4))
+#combined <- combined %>% filter(!is.na(GSWGT4)) -> dont need to do this as it introduces attrition bias. FIML in lavaan will address missing data 
 nrow(combined)
 
 # Final check: protective_factors vs. corrected parent_closeness
 cor(combined$protective_factors, combined$parent_closeness, use = "pairwise.complete.obs")
+
+
+
 ```
+
 ```{r}
 # Rebuild the svydesign object with the corrected combined data
 library(survey)
@@ -1246,15 +1257,14 @@ View(addhealth_design)
 ```{r}
 
 combined_long <- combined %>%
-  
   select(
     AID, GSWGT4, CLUSTER2,
-    protective_factors,
-    parent_closeness,
+    protective_factors, parent_closeness,
     BIO_SEX, PA12, PA55,
     H1GI6A, H1GI6B, H1GI6C, H1GI6D, H1GI6E,
     cesd_w1_mean, cesd_w2_mean, cesd_w3_mean, cesd_w4_mean,
-    age_w1, age_w2, age_w3, age_w4
+    age_w1, age_w2, age_w3, age_w4,
+    age_w1_centred, age_w2_centred, age_w3_centred, age_w4_centred  # fixed
   ) %>%
   
   pivot_longer(
@@ -1270,6 +1280,12 @@ combined_long <- combined %>%
       wave == "cesd_w3_mean" ~ age_w3,
       wave == "cesd_w4_mean" ~ age_w4
     ),
+    age_centred = case_when(          # ← centered age to be used in data analysis instead of waves
+      wave == "cesd_w1_mean" ~ age_w1_centred,
+      wave == "cesd_w2_mean" ~ age_w2_centred,
+      wave == "cesd_w3_mean" ~ age_w3_centred,
+      wave == "cesd_w4_mean" ~ age_w4_centred
+    ),
     wave_num = case_when(
       wave == "cesd_w1_mean" ~ 1,
       wave == "cesd_w2_mean" ~ 2,
@@ -1278,7 +1294,9 @@ combined_long <- combined %>%
     )
   ) %>%
   
-  select(-age_w1, -age_w2, -age_w3, -age_w4, -wave)
+  select(-age_w1, -age_w2, -age_w3, -age_w4,
+         -age_w1_centred, -age_w2_centred, -age_w3_centred, -age_w4_centred,
+         -wave)  # clean up the wide-format age columns after mapping
 
 View(combined_long)
 
