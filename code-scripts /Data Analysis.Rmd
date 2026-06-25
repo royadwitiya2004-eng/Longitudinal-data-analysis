@@ -103,4 +103,320 @@ summary(fit_model_h1_final, fit.measures = TRUE, standardized = TRUE)
 
 anova(fit_baseline, fit_conditional, fit_model_h1_final)
 ```
+```{r}
+###Hypothesis 2:  Distinct trajectory subgroups of depressive symptoms across adolescence and adulthood are differentially predicted by early parent relationship quality
+#There will be identifiable subgroups following distinct depressive symptom trajectories (e.g. chronically high, adolescent-limited, low-stable) across Waves I–IV, and membership in more adverse trajectory classes will be predicted by lower parental warmth and closeness at Wave I, above and beyond demographic covariates.
+#This is your LCGA hypothesis — it integrates the trajectory modelling with your parent relationship variables in a theoretically motivated way. The first part (identifying trajectory classes) maps directly onto developmental psychopathology frameworks like Moffitt's taxonomy, which distinguishes life-course-persistent from adolescence-limited patterns. The second part (predicting class membership) tests attachment and parenting theory: warm, close parent-child relationships in adolescence are theorised to be a key protective factor against persistent psychopathology.
+#Analytically this is the two-stage LCGA approach we discussed — lcmm for trajectory identification, then multinomial logistic regression predicting class membership from your H1WP9, H1WP10, H1WP13, H1WP14, H1PF1–H1PF5, H1PF23–H1PF25 parent relationship composites, with demographic covariates (sex, race, parental SES) included as controls. The reference category would be the low-stable trajectory class, and you'd interpret relative risk ratios for each adverse class.
+
+
+library(lcmm)
+library(tidyr)
+library(dplyr)
+
+# Reshape combined (wide) into long format for lcmm
+lcga_long <- combined %>%
+  select(AID, cesd_w1_mean, cesd_w2_mean, cesd_w3_mean, cesd_w4_mean,
+         age_w1, age_w2, age_w3, age_w4) %>%
+  pivot_longer(
+    cols = c(cesd_w1_mean, cesd_w2_mean, cesd_w3_mean, cesd_w4_mean),
+    names_to = "wave", values_to = "cesd"
+  ) %>%
+  mutate(wave_num = case_when(
+    wave == "cesd_w1_mean" ~ 1,
+    wave == "cesd_w2_mean" ~ 2,
+    wave == "cesd_w3_mean" ~ 3,
+    wave == "cesd_w4_mean" ~ 4
+  )) %>%
+  rowwise() %>%
+  mutate(age = case_when(
+    wave_num == 1 ~ age_w1,
+    wave_num == 2 ~ age_w2,
+    wave_num == 3 ~ age_w3,
+    wave_num == 4 ~ age_w4
+  )) %>%
+  ungroup() %>%
+  select(AID, wave_num, age, cesd) %>%
+  arrange(AID, wave_num)
+
+# lcmm needs a numeric ID, not a character AID
+lcga_long <- lcga_long %>%
+  mutate(id_num = as.numeric(factor(AID)))
+
+head(lcga_long, 12)
+
+# Check the spread of ages — informs whether a linear or quadratic age term is needed
+summary(lcga_long$age)
+```
+```{r}
+set.seed(123)
+
+m1 <- hlme(
+  cesd ~ age,
+  subject = "id_num",
+  random = ~ age,
+  ng = 1,
+  data = lcga_long,
+  na.action = 1   # listwise deletion within lcmm; FIML-equivalent handling differs from lavaan, flag this
+)
+
+summary(m1)
+```
+
+```{r}
+m2 <- hlme(
+  cesd ~ age,
+  subject = "id_num",
+  random = ~ age,
+  ng = 2,
+  data = lcga_long,
+  mixture = ~ age,
+  B = m1
+)
+
+m3 <- hlme(
+  cesd ~ age,
+  subject = "id_num",
+  random = ~ age,
+  ng = 3,
+  data = lcga_long,
+  mixture = ~ age,
+  B = m1
+)
+
+m4 <- hlme(
+  cesd ~ age,
+  subject = "id_num",
+  random = ~ age,
+  ng = 4,
+  data = lcga_long,
+  mixture = ~ age,
+  B = m1)
+
+summarytable(m1, m2, m3, m4, which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "%class"))
+```
+
+```{r}
+library(lcmm)
+
+set.seed(123)
+
+# Re-run m2, m3, m4 with multiple random starting values via gridsearch
+# rep = number of random starts to try (50-100 is common in published LCGA work;
+# starting smaller here for speed, scale up once you confirm this runs)
+
+m2_grid <- gridsearch(
+  hlme(cesd ~ age, subject = "id_num", random = ~ age, ng = 2,
+       data = lcga_long, mixture = ~ age),
+  rep = 30, maxiter = 10, minit = m1
+)
+
+m3_grid <- gridsearch(
+  hlme(cesd ~ age, subject = "id_num", random = ~ age, ng = 3,
+       data = lcga_long, mixture = ~ age),
+  rep = 30, maxiter = 10, minit = m1
+)
+
+m4_grid <- gridsearch(
+  hlme(cesd ~ age, subject = "id_num", random = ~ age, ng = 4,
+       data = lcga_long, mixture = ~ age),
+  rep = 30, maxiter = 10, minit = m1
+)
+
+summarytable(m1, m2_grid, m3_grid, m4_grid,
+             which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "%class"))
+```
+
+```{r}
+pred <- predictY(m2_grid, lcga_long, var.time = "age")
+
+library(ggplot2)
+plot_data <- data.frame(
+  age = rep(pred$times$age, ncol(pred$pred)),
+  predicted_cesd = as.vector(pred$pred),
+  class = factor(rep(1:ncol(pred$pred), each = nrow(pred$times)))
+)
+
+ggplot(plot_data, aes(x = age, y = predicted_cesd, color = class)) +
+  geom_line(size = 1.2) +
+  labs(title = "Predicted depression trajectories — 2-class LCGA solution",
+       x = "Age", y = "Predicted CES-D",
+       color = "Class")
+```
+
+```{r}
+# Step 1: fit the 1-class quadratic model first (parallel to m1, but quadratic)
+m1_quad <- hlme(
+  cesd ~ age + I(age^2),
+  subject = "id_num",
+  random = ~ age,
+  ng = 1,
+  data = lcga_long
+)
+
+summary(m1_quad)
+
+# Step 2: NOW run the 3-class quadratic gridsearch, initializing from m1_quad
+m3_quad_grid <- gridsearch(
+  hlme(cesd ~ age + I(age^2), subject = "id_num", random = ~ age, ng = 3,
+       data = lcga_long, mixture = ~ age + I(age^2)),
+  rep = 30, maxiter = 10, minit = m1_quad
+)
+
+summarytable(m1_quad, m2_grid, m3_quad_grid,
+             which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "%class"))
+```
+
+```{r}
+m3_quad_grid <- gridsearch(
+  hlme(cesd ~ age + I(age^2), subject = "id_num", random = ~ age, ng = 3,
+       data = lcga_long, mixture = ~ age + I(age^2)),
+  rep = 30, maxiter = 50, minit = m1_quad   # increased from 10 to 50
+)
+
+summarytable(m1_quad, m2_grid, m3_quad_grid,
+             which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "%class"))
+```
+```{r}
+pred_quad <- predictY(m3_quad_grid, lcga_long, var.time = "age")
+
+library(ggplot2)
+plot_data_quad <- data.frame(
+  age = rep(pred_quad$times$age, ncol(pred_quad$pred)),
+  predicted_cesd = as.vector(pred_quad$pred),
+  class = factor(rep(1:ncol(pred_quad$pred), each = nrow(pred_quad$times)))
+)
+
+ggplot(plot_data_quad, aes(x = age, y = predicted_cesd, color = class)) +
+  geom_line(size = 1.2) +
+  labs(title = "Predicted depression trajectories — 3-class quadratic LCGA solution",
+       x = "Age", y = "Predicted CES-D",
+       color = "Class")
+```
+```{r}
+# Check classification quality — postprob() gives average posterior probabilities
+# and the proportion of subjects classified with >50%, >70%, >90% confidence
+postprob(m3_quad_grid)
+```
+```{r}
+set.seed(123)
+
+m3_quad_grid_final <- gridsearch(
+  hlme(cesd ~ age + I(age^2), subject = "id_num", random = ~ age, ng = 3,
+       data = lcga_long, mixture = ~ age + I(age^2)),
+  rep = 100, maxiter = 50, minit = m1_quad
+)
+
+summarytable(m2_grid, m3_quad_grid, m3_quad_grid_final,
+             which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "%class"))
+```
+```{r}
+set.seed(123)
+
+m3_quad_grid_rep100 <- gridsearch(
+  hlme(cesd ~ age + I(age^2), subject = "id_num", random = ~ age, ng = 3,
+       data = lcga_long, mixture = ~ age + I(age^2)),
+  rep = 100, maxiter = 50, minit = m1_quad
+)
+
+# Also rerun the original at maxiter=50 for a fair, single-variable comparison
+set.seed(123)
+
+m3_quad_grid_rep30_maxiter50 <- gridsearch(
+  hlme(cesd ~ age + I(age^2), subject = "id_num", random = ~ age, ng = 3,
+       data = lcga_long, mixture = ~ age + I(age^2)),
+  rep = 30, maxiter = 50, minit = m1_quad
+)
+
+summarytable(m3_quad_grid, m3_quad_grid_rep30_maxiter50, m3_quad_grid_rep100,
+             which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "%class"))
+```
+```{r}
+# Step 1: just push maxiter up, keep rep modest, see if it even finishes in reasonable time
+set.seed(123)
+
+m3_quad_grid_maxiter100 <- gridsearch(
+  hlme(cesd ~ age + I(age^2), subject = "id_num", random = ~ age, ng = 3,
+       data = lcga_long, mixture = ~ age + I(age^2)),
+  rep = 10, maxiter = 100, minit = m1_quad
+)
+
+summarytable(m3_quad_grid, m3_quad_grid_rep30_maxiter50, m3_quad_grid_maxiter100,
+             which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "%class"))
+# Time a single hlme() fit directly, no gridsearch wrapper, to see how long ONE fit takes
+system.time({
+  test_fit <- hlme(cesd ~ age + I(age^2), subject = "id_num", random = ~ age, ng = 3,
+                    data = lcga_long, mixture = ~ age + I(age^2),
+                    B = m1_quad, maxiter = 100)
+})
+```
+
+```{r}
+# Use the CONFIRMED stable model (matched maxiter=50, reproducible across rep=30 and rep=100)
+# NOT the earlier maxiter=10 result, which we now believe was an under-converged artifact
+
+class_assignments_quad <- m3_quad_grid_rep100$pprob %>%
+  select(id_num, class)
+
+id_lookup <- lcga_long %>% select(AID, id_num) %>% distinct()
+
+class_assignments_quad <- class_assignments_quad %>%
+  left_join(id_lookup, by = "id_num")
+
+# Merge into combined, dropping any earlier class columns
+combined <- combined %>%
+  select(-any_of(c("class", "class_label"))) %>%
+  left_join(class_assignments_quad %>% select(AID, class), by = "AID")
+
+table(combined$class)
+```
+```{r}
+pred_quad_final <- predictY(m3_quad_grid_rep100, lcga_long, var.time = "age")
+
+library(ggplot2)
+plot_data_quad_final <- data.frame(
+  age = rep(pred_quad_final$times$age, ncol(pred_quad_final$pred)),
+  predicted_cesd = as.vector(pred_quad_final$pred),
+  class = factor(rep(1:ncol(pred_quad_final$pred), each = nrow(pred_quad_final$times)))
+)
+
+ggplot(plot_data_quad_final, aes(x = age, y = predicted_cesd, color = class)) +
+  geom_line(size = 1.2) +
+  labs(title = "Predicted depression trajectories — confirmed 3-class quadratic LCGA solution",
+       x = "Age", y = "Predicted CES-D",
+       color = "Class")
+```
+```{r}
+postprob(m3_quad_grid_rep100)
+```
+```{r}
+combined <- combined %>%
+  mutate(class_label = factor(class,
+                                levels = c(1, 2, 3),
+                                labels = c("low_stable", "chronic_escalating", "early_elevated_declining")))
+
+table(combined$class_label)
+
+# Confirm low_stable is already the reference (first factor level = reference in multinom)
+levels(combined$class_label)
+```
+
+```{r}
+library(nnet)
+
+multinom_model <- multinom(
+  class_label ~ parent_closeness + protective_factors + BIO_SEX + PA55,
+  data = combined
+)
+
+summary(multinom_model)
+
+# Relative risk ratios (exponentiated coefficients) — easier to interpret than raw logits
+exp(coef(multinom_model))
+
+# p-values (multinom doesn't provide these by default)
+z_scores <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
+p_values <- (1 - pnorm(abs(z_scores), 0, 1)) * 2
+p_values
+```
 
