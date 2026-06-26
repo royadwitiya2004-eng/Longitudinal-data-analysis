@@ -430,7 +430,6 @@ z_scores <- summary(multinom_model)$coefficients / summary(multinom_model)$stand
 p_values <- (1 - pnorm(abs(z_scores), 0, 1)) * 2
 p_values
 ```
-<<<<<<< HEAD
 ```{r}
 predicted_class <- predict(multinom_model, type = "class")
 table(Predicted = predicted_class, Actual = combined$class_label)
@@ -439,5 +438,3 @@ table(Predicted = predicted_class, Actual = combined$class_label)
 mean(predicted_class == combined$class_label, na.rm = TRUE)
 ```
 
-=======
->>>>>>> 09c4ae90198bf0b06ed3eea5dc6f35c52bae781b
