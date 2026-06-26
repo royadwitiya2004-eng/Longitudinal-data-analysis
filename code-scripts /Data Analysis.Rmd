@@ -419,4 +419,11 @@ z_scores <- summary(multinom_model)$coefficients / summary(multinom_model)$stand
 p_values <- (1 - pnorm(abs(z_scores), 0, 1)) * 2
 p_values
 ```
+```{r}
+predicted_class <- predict(multinom_model, type = "class")
+table(Predicted = predicted_class, Actual = combined$class_label)
+
+# Overall accuracy
+mean(predicted_class == combined$class_label, na.rm = TRUE)
+```
 
