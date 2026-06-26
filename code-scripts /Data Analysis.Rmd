@@ -3,8 +3,8 @@ title: "Data Analysis"
 output: html_document
 ---
 
-Hypothesis 1: Individuals with higher levels of perceived social support and parental closeness at Wave 1 will show a significantly flatter rate of increase in depressive symptoms across Waves I–IV, compared to those with lower perceived parental closeness and social support.
-Analysis: Latent Growth Curve Analysis 
+Hypothesis 1: Individuals with higher levels of perceived social support and parental closeness at Wave 1 will show a significantly flatter rate of increase in depressive symptoms across Waves I–IV, compared to those with lower perceived parental closeness and social support. Analysis: Latent Growth Curve Analysis
+
 ```{r}
 library(lavaan)
 
@@ -42,6 +42,7 @@ summary(fit_baseline, fit.measures = TRUE, standardized = TRUE)
 
 
 ```
+
 ```{r}
 #See if protective factors + parental closeness predict difference in trajectories of depression 
 
@@ -66,7 +67,6 @@ summary(fit_conditional, fit.measures = TRUE, standardized = TRUE)
 
 
 ```
-
 
 ```{r}
 
@@ -103,13 +103,15 @@ summary(fit_model_h1_final, fit.measures = TRUE, standardized = TRUE)
 
 anova(fit_baseline, fit_conditional, fit_model_h1_final)
 ```
+
+```         
+```
+
+#### **Hypothesis 2:**
+
+Distinct trajectory subgroups of depressive symptoms across adolescence and adulthood are differentially predicted by early parent relationship quality #There will be identifiable subgroups following distinct depressive symptom trajectories (e.g. chronically high, adolescent-limited, low-stable) across Waves I–IV, and membership in more adverse trajectory classes will be predicted by lower parental warmth and closeness at Wave I, above and beyond demographic covariates. #This is your LCGA hypothesis — it integrates the trajectory modelling with your parent relationship variables in a theoretically motivated way. The first part (identifying trajectory classes) maps directly onto developmental psychopathology frameworks like Moffitt's taxonomy, which distinguishes life-course-persistent from adolescence-limited patterns. The second part (predicting class membership) tests attachment and parenting theory: warm, close parent-child relationships in adolescence are theorised to be a key protective factor against persistent psychopathology. #Analytically this is the two-stage LCGA approach we discussed — lcmm for trajectory identification, then multinomial logistic regression predicting class membership from your H1WP9, H1WP10, H1WP13, H1WP14, H1PF1–H1PF5, H1PF23–H1PF25 parent relationship composites, with demographic covariates (sex, race, parental SES) included as controls. The reference category would be the low-stable trajectory class, and you'd interpret relative risk ratios for each adverse class.
+
 ```{r}
-###Hypothesis 2:  Distinct trajectory subgroups of depressive symptoms across adolescence and adulthood are differentially predicted by early parent relationship quality
-#There will be identifiable subgroups following distinct depressive symptom trajectories (e.g. chronically high, adolescent-limited, low-stable) across Waves I–IV, and membership in more adverse trajectory classes will be predicted by lower parental warmth and closeness at Wave I, above and beyond demographic covariates.
-#This is your LCGA hypothesis — it integrates the trajectory modelling with your parent relationship variables in a theoretically motivated way. The first part (identifying trajectory classes) maps directly onto developmental psychopathology frameworks like Moffitt's taxonomy, which distinguishes life-course-persistent from adolescence-limited patterns. The second part (predicting class membership) tests attachment and parenting theory: warm, close parent-child relationships in adolescence are theorised to be a key protective factor against persistent psychopathology.
-#Analytically this is the two-stage LCGA approach we discussed — lcmm for trajectory identification, then multinomial logistic regression predicting class membership from your H1WP9, H1WP10, H1WP13, H1WP14, H1PF1–H1PF5, H1PF23–H1PF25 parent relationship composites, with demographic covariates (sex, race, parental SES) included as controls. The reference category would be the low-stable trajectory class, and you'd interpret relative risk ratios for each adverse class.
-
-
 library(lcmm)
 library(tidyr)
 library(dplyr)
@@ -148,6 +150,7 @@ head(lcga_long, 12)
 # Check the spread of ages — informs whether a linear or quadratic age term is needed
 summary(lcga_long$age)
 ```
+
 ```{r}
 set.seed(123)
 
@@ -277,6 +280,7 @@ m3_quad_grid <- gridsearch(
 summarytable(m1_quad, m2_grid, m3_quad_grid,
              which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "%class"))
 ```
+
 ```{r}
 pred_quad <- predictY(m3_quad_grid, lcga_long, var.time = "age")
 
@@ -293,11 +297,13 @@ ggplot(plot_data_quad, aes(x = age, y = predicted_cesd, color = class)) +
        x = "Age", y = "Predicted CES-D",
        color = "Class")
 ```
+
 ```{r}
 # Check classification quality — postprob() gives average posterior probabilities
 # and the proportion of subjects classified with >50%, >70%, >90% confidence
 postprob(m3_quad_grid)
 ```
+
 ```{r}
 set.seed(123)
 
@@ -310,6 +316,7 @@ m3_quad_grid_final <- gridsearch(
 summarytable(m2_grid, m3_quad_grid, m3_quad_grid_final,
              which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "%class"))
 ```
+
 ```{r}
 set.seed(123)
 
@@ -331,6 +338,7 @@ m3_quad_grid_rep30_maxiter50 <- gridsearch(
 summarytable(m3_quad_grid, m3_quad_grid_rep30_maxiter50, m3_quad_grid_rep100,
              which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "%class"))
 ```
+
 ```{r}
 # Step 1: just push maxiter up, keep rep modest, see if it even finishes in reasonable time
 set.seed(123)
@@ -370,6 +378,7 @@ combined <- combined %>%
 
 table(combined$class)
 ```
+
 ```{r}
 pred_quad_final <- predictY(m3_quad_grid_rep100, lcga_long, var.time = "age")
 
@@ -386,9 +395,11 @@ ggplot(plot_data_quad_final, aes(x = age, y = predicted_cesd, color = class)) +
        x = "Age", y = "Predicted CES-D",
        color = "Class")
 ```
+
 ```{r}
 postprob(m3_quad_grid_rep100)
 ```
+
 ```{r}
 combined <- combined %>%
   mutate(class_label = factor(class,
@@ -419,4 +430,3 @@ z_scores <- summary(multinom_model)$coefficients / summary(multinom_model)$stand
 p_values <- (1 - pnorm(abs(z_scores), 0, 1)) * 2
 p_values
 ```
-
